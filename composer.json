@@ -4,7 +4,11 @@
         "psr-4": {
             "dmyers\\orange\\": "orange/src/",
             "app\\": "app/"
-        }
+        },
+        "files": [
+            "orange/src/Disc.php",
+            "orange/src/Orange.php"
+        ]
     },
     "authors": [{
         "name": "Don Myers",

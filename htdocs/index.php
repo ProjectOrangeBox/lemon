@@ -13,4 +13,4 @@ require __ROOT__ . '/vendor/autoload.php';
 /* user custom loader */
 require __ROOT__ . '/app/Bootstrap.php';
 
-(new orange(__ROOT__ . '/app/config'))->go();
+orange(__ROOT__ . '/app/config');
