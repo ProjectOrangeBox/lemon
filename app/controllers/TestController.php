@@ -9,36 +9,6 @@ class TestController extends Controller
 {
 	public function index($arg1, $id)
 	{
-		echo '<pre>Testing' . chr(10);
-
-		$e = container()->events;
-
-		$e->register('email@test', function (&$arg1) {
-			$arg1 = $arg1 . '[highest1]';
-		}, Event::PRIORITY_HIGHEST);
-
-		$e->register('email@test', function (&$arg1) {
-			$arg1 = $arg1 . '[low]';
-		}, Event::PRIORITY_LOW);
-
-		$e->register('email@test', function (&$arg1) {
-			$arg1 = $arg1 . '[highest2]';
-		}, Event::PRIORITY_HIGHEST);
-
-		$e->register('email@test', function (&$arg1) {
-			$arg1 = $arg1 . '[normal]';
-		}, Event::PRIORITY_NORMAL);
-
-		$e->trigger('email@test', $arg1);
-
-		echo $arg1 . $id;
-
-		echo chr(10);
-
-		var_dump($e->has('email@test'));
-
-		var_dump($e->events());
-
-		var_dump(container()->router->responds());
+		return $this->output->view('/test', ['arg1' => $arg1, 'id' => $id]);
 	}
 } /* end class */

@@ -11,37 +11,33 @@ use dmyers\orange\Dispatcher;
 use dmyers\orange\exceptions\ConfigFileNotArray;
 use dmyers\orange\exceptions\ConfigFolderNotFound;
 
-if (!function_exists('app')) {
+if (!function_exists('container')) {
 	function container()
 	{
-		static $container;
-
-		if (!$container) {
-			$container = new Container;
-		}
-
-		return $container;
+		return new Container;
 	}
 }
 
 if (!function_exists('orange')) {
 	function orange(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
 	{
+		$container = new Container;
+
 		/* as array */
-		container()->config = &loadConfig($configFolderPath);
+		$container->config = loadConfig($configFolderPath);
 
-		container()->events = new Event;
+		$container->events = new Event;
 
-		container()->input = new Input(container()->config['input']);
+		$container->input = new Input($container->config['input']);
 
-		container()->router = new Router(container()->config['routes'], container()->input);
+		$container->router = new Router($container->config['routes'], $container->input);
 
-		container()->output = new Output(container()->config['output'], container()->input);
+		$container->output = new Output($container->config['output'], $container->input);
 
-		container()->dispatcher = new Dispatcher(container()->input, container()->output);
+		$container->dispatcher = new Dispatcher($container->input, $container->output);
 
 		/* away we go */
-		container()->output->appendOutput(container()->dispatcher->call(container()->router->route($request_uri, $request_method)))->send();
+		$container->output->appendOutput($container->dispatcher->call($container->router->route($request_uri, $request_method)))->send();
 	}
 }
 
@@ -53,7 +49,7 @@ if (!function_exists('exceptionHandler')) {
 		echo '<pre>' . trim(implode(' ', preg_split('/(?=[A-Z])/', end($classes)))) . chr(10) . '"' . $exception->getMessage() . '"' . chr(10) . 'thrown on line ' . $exception->getLine() . ' in ' . $exception->getFile() . chr(10);
 	}
 
-	//set_exception_handler('exceptionHandler');
+	set_exception_handler('exceptionHandler');
 }
 
 if (!function_exists('logMsg')) {

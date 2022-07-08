@@ -14,6 +14,6 @@ class Controller
 	{
 		$this->input = $input;
 		$this->output = $output;
-		$this->config = container()->config;
+		$this->config = container()->get('config');
 	}
 } /* end class */
