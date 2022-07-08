@@ -1,0 +1,14 @@
+{
+    "name": "dmyers/orange",
+    "autoload": {
+        "psr-4": {
+            "dmyers\\orange\\": "orange/src/",
+            "app\\": "app/"
+        }
+    },
+    "authors": [{
+        "name": "Don Myers",
+        "email": "donmyers@me.com"
+    }],
+    "require": {}
+}
