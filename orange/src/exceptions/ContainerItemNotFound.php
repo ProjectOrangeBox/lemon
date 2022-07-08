@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace dmyers\orange;
+namespace dmyers\orange\exceptions;
 
 class ContainerItemNotFound extends \Exception
 {

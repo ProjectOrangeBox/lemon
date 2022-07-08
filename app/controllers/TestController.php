@@ -11,7 +11,7 @@ class TestController extends Controller
 	{
 		echo '<pre>Testing' . chr(10);
 
-		$e = app('events');
+		$e = container()->events;
 
 		$e->register('email@test', function (&$arg1) {
 			$arg1 = $arg1 . '[highest1]';
@@ -39,6 +39,6 @@ class TestController extends Controller
 
 		var_dump($e->events());
 
-		var_dump(app('router')->responds());
+		var_dump(container()->router->responds());
 	}
 } /* end class */

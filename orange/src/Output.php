@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use dmyers\orange\exceptions\ViewNotFound;
+
 class Output
 {
 	protected $code = 200;
@@ -31,7 +33,7 @@ class Output
 		$this->output[$this->htmlKey] = '';
 	}
 
-	public function flushOutput(): output
+	public function flushOutput(): self
 	{
 		$this->output = [];
 
@@ -78,14 +80,14 @@ class Output
 		return (isset($this->output[$name])) ? $this->output[$name] : null;
 	}
 
-	public function setOutput(string $html): output
+	public function setOutput(string $html): self
 	{
 		$this->output[$this->htmlKey] = $html;
 
 		return $this;
 	}
 
-	public function appendOutput(?string $html): output
+	public function appendOutput(?string $html): self
 	{
 		$this->output[$this->htmlKey] .= $html;
 
@@ -97,7 +99,7 @@ class Output
 		return (isset($this->output[$this->htmlKey])) ? $this->output[$this->htmlKey] : '';
 	}
 
-	public function contentType(string $contentType): output
+	public function contentType(string $contentType): self
 	{
 		$this->contentType = $contentType;
 
@@ -111,7 +113,7 @@ class Output
 		return $this->contentType;
 	}
 
-	public function header(string $header, string $key = null): output
+	public function header(string $header, string $key = null): self
 	{
 		$this->headers[$key] = $header;
 
@@ -123,7 +125,7 @@ class Output
 		return array_values($this->headers);
 	}
 
-	public function sendHeaders(): output
+	public function sendHeaders(): self
 	{
 		foreach ($this->getHeaders() as $header) {
 			header($header);
@@ -132,7 +134,7 @@ class Output
 		return $this;
 	}
 
-	public function charSet(string $charSet): output
+	public function charSet(string $charSet): self
 	{
 		$this->charSet = $charSet;
 
@@ -146,7 +148,7 @@ class Output
 		return $this->charSet;
 	}
 
-	public function responseCode(int $code): output
+	public function responseCode(int $code): self
 	{
 		$this->code = $code;
 
@@ -174,6 +176,30 @@ class Output
 	public function __toString()
 	{
 		return ($this->contentType == 'application/json') ? json_encode($this->output, $this->jsonOptions) : $this->getOutput();
+	}
+
+	public function view($_mvc_view_name, $_mvc_view_data = [])
+	{
+		/* what file are we looking for? */
+		$_mvc_view_file = rtrim(container()->config['path']['views'], '/') . '/' . $_mvc_view_name . '.php';
+
+		/* is it there? if not return nothing */
+		if (!file_exists($_mvc_view_file)) {
+			/* file not found so bail */
+			throw new ViewNotFound($_mvc_view_name);
+		}
+
+		/* extract out view data and make it in scope */
+		extract($_mvc_view_data, EXTR_OVERWRITE);
+
+		/* start output cache */
+		ob_start();
+
+		/* load in view (which now has access to the in scope view data */
+		require $_mvc_view_file;
+
+		/* capture cache and return */
+		return ob_get_clean();
 	}
 
 	protected function updateContentHeader(): void

@@ -8,6 +8,6 @@ class MainController extends Controller
 {
 	public function index()
 	{
-		return view('/index');
+		return $this->output->view('/index');
 	}
 } /* end class */

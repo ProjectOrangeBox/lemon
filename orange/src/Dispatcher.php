@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use dmyers\orange\exceptions\ControllerFileNotFound;
+use dmyers\orange\exceptions\ControllerClassNotFound;
+use dmyers\orange\exceptions\ControllerMethodNotFound;
+
 class Dispatcher
 {
 	protected $input = null;

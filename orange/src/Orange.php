@@ -8,34 +8,11 @@ use dmyers\orange\Output;
 use dmyers\orange\Router;
 use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
-use dmyers\orange\ViewNotFound;
-use dmyers\orange\ConfigFileNotArray;
-use dmyers\orange\ConfigFolderNotFound;
-use dmyers\orange\ContainerItemNotFound;
-
-if (!function_exists('orange')) {
-	function orange(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
-	{
-		/* as array */
-		app()->config = loadConfig($configFolderPath);
-
-		app()->events = new Event;
-
-		app()->input = new Input(app('config')['input']);
-
-		app()->router = new Router(app('config')['routes'], app()->input);
-
-		app()->output = new Output(app('config')['output'], app()->input);
-
-		app()->dispatcher = new Dispatcher(app()->input, app()->output);
-
-		/* away we go */
-		app()->output->appendOutput(app()->dispatcher->call(app()->router->route($request_uri, $request_method)))->send();
-	}
-}
+use dmyers\orange\exceptions\ConfigFileNotArray;
+use dmyers\orange\exceptions\ConfigFolderNotFound;
 
 if (!function_exists('app')) {
-	function app(string $name = null)
+	function container()
 	{
 		static $container;
 
@@ -43,21 +20,40 @@ if (!function_exists('app')) {
 			$container = new Container;
 		}
 
-		if ($name && !$container->$name) {
-			throw new ContainerItemNotFound($name);
-		}
+		return $container;
+	}
+}
 
-		return ($name) ? $container->$name : $container;
+if (!function_exists('orange')) {
+	function orange(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
+	{
+		/* as array */
+		container()->config = &loadConfig($configFolderPath);
+
+		container()->events = new Event;
+
+		container()->input = new Input(container()->config['input']);
+
+		container()->router = new Router(container()->config['routes'], container()->input);
+
+		container()->output = new Output(container()->config['output'], container()->input);
+
+		container()->dispatcher = new Dispatcher(container()->input, container()->output);
+
+		/* away we go */
+		container()->output->appendOutput(container()->dispatcher->call(container()->router->route($request_uri, $request_method)))->send();
 	}
 }
 
 if (!function_exists('exceptionHandler')) {
 	function exceptionHandler(\Throwable $exception)
 	{
-		echo '<pre>' . trim(implode(' ', preg_split('/(?=[A-Z])/', get_class($exception)))) . ' exception "' . $exception->getMessage() . '"' . chr(10) . 'thrown on line ' . $exception->getLine() . ' in ' . $exception->getFile() . chr(10);
+		$classes = explode('\\', get_class($exception));
+
+		echo '<pre>' . trim(implode(' ', preg_split('/(?=[A-Z])/', end($classes)))) . chr(10) . '"' . $exception->getMessage() . '"' . chr(10) . 'thrown on line ' . $exception->getLine() . ' in ' . $exception->getFile() . chr(10);
 	}
 
-	set_exception_handler('exceptionHandler');
+	//set_exception_handler('exceptionHandler');
 }
 
 if (!function_exists('logMsg')) {
@@ -65,33 +61,7 @@ if (!function_exists('logMsg')) {
 	{
 		$pre = ($skipDate) ? '' : date(DATE_RFC2822) . ' ';
 
-		return file_put_contents(app('config')['path']['log'] . '/' . $level . '.txt', $pre . $msg . chr(10), FILE_APPEND | LOCK_EX);
-	}
-}
-
-if (!function_exists('view')) {
-	function view($_mvc_view_name, $_mvc_view_data = [])
-	{
-		/* what file are we looking for? */
-		$_mvc_view_file = rtrim(app('config')['path']['views'], '/') . '/' . $_mvc_view_name . '.php';
-
-		/* is it there? if not return nothing */
-		if (!file_exists($_mvc_view_file)) {
-			/* file not found so bail */
-			throw new ViewNotFound($_mvc_view_name);
-		}
-
-		/* extract out view data and make it in scope */
-		extract($_mvc_view_data, EXTR_OVERWRITE);
-
-		/* start output cache */
-		ob_start();
-
-		/* load in view (which now has access to the in scope view data */
-		require $_mvc_view_file;
-
-		/* capture cache and return */
-		return ob_get_clean();
+		return file_put_contents(container()->config['path']['log'] . '/' . $level . '.txt', $pre . $msg . chr(10), FILE_APPEND | LOCK_EX);
 	}
 }
 

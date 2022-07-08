@@ -8,8 +8,6 @@ class FourohfourController extends Controller
 {
 	public function index()
 	{
-		$this->output->responseCode(404);
-
-		return '404';
+		return $this->output->responseCode(404)->view('/404');
 	}
 } /* end class */
