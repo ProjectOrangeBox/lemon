@@ -178,10 +178,10 @@ class Output
 		return ($this->contentType == 'application/json') ? json_encode($this->output, $this->jsonOptions) : $this->getOutput();
 	}
 
-	public function view($_mvc_view_name, $_mvc_view_data = [])
+	public function view($_mvc_view_name, $_mvc_view_data = []): string
 	{
 		/* what file are we looking for? */
-		$_mvc_view_file = rtrim(container()->config['path']['views'], '/') . '/' . $_mvc_view_name . '.php';
+		$_mvc_view_file = rtrim($this->config['views'], '/') . '/' . $_mvc_view_name . '.php';
 
 		/* is it there? if not return nothing */
 		if (!file_exists($_mvc_view_file)) {

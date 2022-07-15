@@ -12,6 +12,9 @@
 <body>
 	<p>Arg 1: <strong><?= $arg1 ?></strong></p>
 	<p>Arg 2: <strong><?= $id ?></strong></p>
+	<p>
+		<a href="/">Home</a>
+	</p>
 </body>
 
 </html>

@@ -10,7 +10,16 @@
 </head>
 
 <body>
-	Welcome Home!
+	<p>Welcome Home!</p>
+	<p>
+		<a href="/test/abc/123">Test ABC 123</a>
+	</p>
+	<p>
+		<a href="/test/xyz/890">Test XYZ 890</a>
+	</p>
+	<p>
+		<a href="/test/123/123">Test 123 123 - Error</a>
+	</p>
 </body>
 
 </html>

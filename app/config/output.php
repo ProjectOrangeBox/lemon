@@ -6,4 +6,5 @@ return [
 	'cors' => true,
 	'contentType' => 'text/html',
 	'charSet' => 'utf-8',
+	'views' => __ROOT__ . '/app/views/',
 ];
