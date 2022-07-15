@@ -10,6 +10,9 @@ use dmyers\orange\Output;
 use dmyers\orange\Router;
 use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
+use dmyers\orange\exceptions\ClassNotFound;
+use dmyers\orange\exceptions\ConfigNotFound;
+use dmyers\orange\exceptions\ServiceNotFound;
 
 if (!function_exists('orange')) {
 	function orange()
@@ -21,25 +24,63 @@ if (!function_exists('orange')) {
 if (!function_exists('run')) {
 	function run(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
 	{
+		$services = $configFolderPath . '/services.php';
+
+		if (!file_exists($services)) {
+			throw new ConfigNotFound('could not locate services');
+		}
+
 		$container = orange();
 
+		$container->services = require $services;
+
 		/* as array */
-		$container->config = new Config($configFolderPath);
+		$container->config = new $container->services['config']($configFolderPath);
 
-		$container->log = new Log($container->config->log);
+		$container->log = new $container->services['log']($container->config->log);
 
-		$container->events = new Event();
+		$container->events = new $container->services['events']();
 
-		$container->input = new Input($container->config->input);
+		$container->input = new $container->services['input']($container->config->input);
 
-		$container->router = new Router($container->config->routes, $container->input);
+		$container->router = new $container->services['router']($container->config->routes, $container->input);
 
-		$container->output = new Output($container->config->output, $container->input);
+		$container->output = new $container->services['output']($container->config->output, $container->input);
 
-		$container->dispatcher = new Dispatcher($container->input, $container->output);
+		$container->dispatcher = new $container->services['dispatcher']($container->input, $container->output);
 
 		/* away we go */
 		$container->output->appendOutput($container->dispatcher->call($container->router->route($request_uri, $request_method)))->send();
+	}
+}
+
+if (!function_exists('createService')) {
+	function createService(string $name)
+	{
+		$container = orange();
+
+		if (!isset($container->services[$name])) {
+			throw new ServiceNotFound($name);
+		}
+
+		$args = func_get_args();
+
+		switch ($args) {
+			case 2:
+				return new $container->services[$name]($args[0]);
+				break;
+			case 3:
+				return new $container->services[$name]($args[0], $args[1]);
+				break;
+			case 4:
+				return new $container->services[$name]($args[0], $args[1], $args[2]);
+				break;
+			case 5:
+				return new $container->services[$name]($args[0], $args[1], $args[2], $args[3]);
+				break;
+			default:
+				return new $container->services[$name]($container);
+		}
 	}
 }
 
