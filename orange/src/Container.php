@@ -34,8 +34,18 @@ class Container
 		return self::$storage[$name];
 	}
 
-	public function has(string $name): bool
+	public function __unset(string $name): void
+	{
+		unset(self::$storage[$name]);
+	}
+
+	public function __isset(string $name): bool
 	{
 		return isset(self::$storage[$name]);
+	}
+
+	public function has(string $name): bool
+	{
+		return self::__isset($name);
 	}
 } /* end class */

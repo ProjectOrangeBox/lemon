@@ -11,11 +11,25 @@ use dmyers\orange\Router;
 use dmyers\orange\Dispatcher;
 
 return [
-	'config' => Config::class,
-	'output' => Output::class,
-	'input' => Input::class,
-	'dispatcher' => Dispatcher::class,
-	'events' => Event::class,
-	'log' => Log::class,
-	'router' => Router::class,
+	'log' => function (array $config) {
+		return new Log($config);
+	},
+	'events' => function () {
+		return new Event();
+	},
+	'input' => function (array $config) {
+		return new Input($config);
+	},
+	'config' => function (string $configFolder) {
+		return new Config($configFolder);
+	},
+	'output' => function (array $config, input $input) {
+		return new Output($config, $input);
+	},
+	'router' => function (array $config, input $input) {
+		return new Router($config, $input);
+	},
+	'dispatcher' => function (input $input, output $output, config $config) {
+		return new Dispatcher($input, $output, $config);
+	},
 ];
