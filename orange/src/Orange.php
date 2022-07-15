@@ -11,17 +11,17 @@ use dmyers\orange\Router;
 use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
 
-if (!function_exists('container')) {
-	function container()
+if (!function_exists('orange')) {
+	function orange()
 	{
 		return new Container;
 	}
 }
 
-if (!function_exists('orange')) {
-	function orange(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
+if (!function_exists('run')) {
+	function run(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
 	{
-		$container = container();
+		$container = orange();
 
 		/* as array */
 		$container->config = new Config($configFolderPath);
@@ -57,6 +57,6 @@ if (!function_exists('exceptionHandler')) {
 if (!function_exists('logMsg')) {
 	function logMsg(string $msg, string $level = 'log')
 	{
-		container()->log->writeLog($level, $msg);
+		orange()->log->writeLog($level, $msg);
 	}
 }

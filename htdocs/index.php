@@ -11,4 +11,4 @@ require __ROOT__ . '/vendor/autoload.php';
 /* user custom loader */
 require __ROOT__ . '/app/Bootstrap.php';
 
-orange(__ROOT__ . '/app/config');
+run(__ROOT__ . '/app/config');

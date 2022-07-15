@@ -22,11 +22,12 @@ class Log
 	const ALL = 255;
 
 	protected $config = [
+		'filepath' => null,
 		'permissions' => 0644,
 		'threshold' => 0,
 	];
 
-	protected $monolog = null;
+	protected $handler = null;
 	protected $isPhpFile = false;
 	protected $enabled = false;
 	protected $lineFormatter = null;
@@ -55,13 +56,8 @@ class Log
 		/* merge config */
 		$this->config = array_replace($this->config, $config);
 
-		$this->construct();
+		$this->handler = $this;
 
-		$this->writeLog('info', 'Orange Log Class Initialized');
-	}
-
-	protected function construct(): void
-	{
 		$dir = dirname($this->config['filepath']);
 
 		if (!is_dir($dir)) {
@@ -75,27 +71,44 @@ class Log
 		$this->isPhpFile = (pathinfo($this->config['filepath'], PATHINFO_EXTENSION) === 'php');
 
 		if (isset($this->config['line_formatter'])) {
-			if ($this->config['line_formatter'] instanceof Closure) {
-				$this->lineFormatter = $this->config['line_formatter'];
-			} else {
+			if (!$this->config['line_formatter'] instanceof Closure) {
 				throw new invalidConfigurationValue('line_formatter must be a closure');
 			}
-		}
 
-		if (isset($this->config['threshold']) && !is_int($this->config['threshold'])) {
-			throw new invalidConfigurationValue('threshold must be an integer');
+			$this->lineFormatter = $this->config['line_formatter'];
 		}
 
 		if (isset($this->config['monolog'])) {
-			if (is_a($this->config['monolog'], '\Monolog\Logger')) {
-				$this->monolog = &$this->config['monolog'];
-			} else {
+			if (!is_a($this->config['monolog'], '\Monolog\Logger')) {
 				throw new invalidConfigurationValue('monolog must be instance \Monolog\Logger');
 			}
+
+			$this->handler = &$this->config['monolog'];
 		}
 
-		/* finally should we turn on? */
+		if (isset($this->config['threshold'])) {
+			if (!is_int($this->config['threshold'])) {
+				throw new invalidConfigurationValue('threshold must be an integer');
+			}
+
+			$this->changeThreshold($this->config['threshold']);
+		}
+
+		$this->info('Log Class Initialized');
+	}
+
+	public function changeThreshold(int $threshold): self
+	{
+		$this->config['threshold'] = $threshold;
+
 		$this->enabled = ($this->config['threshold'] > 0);
+
+		return $this;
+	}
+
+	public function getThreshold(): int
+	{
+		return $this->config['threshold'];
 	}
 
 	public function isEnabled(): Bool
@@ -103,63 +116,32 @@ class Log
 		return $this->enabled;
 	}
 
-	public function writeLog($level, $msg): bool
+	public function writeLog($level, $msg)
 	{
-		/**
-		 * This Method Has Multiple Exits
-		 */
+		if ($this->enabled) {
+			/* normalize */
+			$level = strtoupper($level);
 
-		if (!$this->enabled) {
-			return false;
+			/* does this log level even exist? */
+			/* bitwise PSR 3 Mode */
+			if (array_key_exists($level, $this->psrLevels) && $this->config['threshold'] & $this->psrLevels[$level]) {
+				$this->handler->$level($msg);
+			}
 		}
-
-		/* normalize */
-		$level = strtoupper($level);
-
-		/* bitwise PSR 3 Mode */
-		if ((!array_key_exists($level, $this->psrLevels)) || (!($this->config['threshold'] & $this->psrLevels[$level]))) {
-			return false;
-		}
-
-		return ($this->monolog) ? $this->monologWriteLog($level, $msg) : $this->internalWriteLog($level, $msg);
 	}
 
-	protected function monologWriteLog(string $level, string $msg): bool
+	public function __call($name, $arguments)
 	{
-		/* route to monolog */
-		switch ($level) {
-			case 'EMERGENCY': // 1
-				$this->monolog->emergency($msg);
-				break;
-			case 'ALERT': // 2
-				$this->monolog->alert($msg);
-				break;
-			case 'CRITICAL': // 4
-				$this->monolog->critical($msg);
-				break;
-			case 'ERROR': // 8
-				$this->monolog->error($msg);
-				break;
-			case 'WARNING': // 16
-				$this->monolog->warning($msg);
-				break;
-			case 'NOTICE': // 32
-				$this->monolog->notice($msg);
-				break;
-			case 'INFO': // 64
-				$this->monolog->info($msg);
-				break;
-			case 'DEBUG': // 128
-				$this->monolog->debug($msg);
-				break;
-			default:
-				throw new InvalidValue($level);
+		$level = strtoupper($name);
+
+		if (!array_key_exists($level, $this->psrLevels)) {
+			throw new InvalidValue($name);
 		}
 
-		return true;
+		$this->internalWrite($level, $arguments[0]);
 	}
 
-	protected function internalWriteLog(string $level, string $msg): bool
+	protected function internalWrite(string $level, string $msg)
 	{
 		$write = '';
 		$isNew = false;
@@ -176,12 +158,10 @@ class Log
 		/* closure */
 		$write .= ($this->lineFormatter)($level, $msg);
 
-		$bytes = file_put_contents($this->config['filepath'], $write, FILE_APPEND | LOCK_EX);
+		file_put_contents($this->config['filepath'], $write, FILE_APPEND | LOCK_EX);
 
 		if ($isNew) {
 			chmod($this->config['filepath'], $this->config['permissions']);
 		}
-
-		return is_int($bytes);
 	}
 } /* End of Class */
