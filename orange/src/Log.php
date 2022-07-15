@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace dmyers\orange;
 
 use Closure;
+use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\FolderNotWritable;
 use dmyers\orange\exceptions\invalidConfigurationValue;
 
@@ -30,7 +31,7 @@ class Log
 	protected $enabled = false;
 	protected $lineFormatter = null;
 
-	protected $psr_levels = [
+	protected $psrLevels = [
 		'NONE'			=> 0,
 		'EMERGENCY' => 1,
 		'ALERT'     => 2,
@@ -48,7 +49,7 @@ class Log
 		$this->config['filepath'] = __ROOT__ . '/var/logs/' . date('Y-m-d') . '-log.txt';
 
 		$this->lineFormatter = function (string $level, string $message): string {
-			return str_pad($level, 10, ' ', STR_PAD_RIGHT) . str_pad(date('Y-m-d H:i:s'), 20, ' ', STR_PAD_RIGHT) . $message . PHP_EOL;
+			return str_pad('[' . date('Y-m-d H:i:s') . ']', 22, ' ', STR_PAD_RIGHT) . $level . ': ' . $message . PHP_EOL;
 		};
 
 		/* merge config */
@@ -81,22 +82,19 @@ class Log
 			}
 		}
 
-		if (isset($this->config['threshold'])) {
-			if (is_int($this->config['threshold'])) {
-				$this->config['threshold'] = $this->config['threshold'];
-			} else {
-				throw new invalidConfigurationValue('threshold must be an integer');
-			}
+		if (isset($this->config['threshold']) && !is_int($this->config['threshold'])) {
+			throw new invalidConfigurationValue('threshold must be an integer');
 		}
 
 		if (isset($this->config['monolog'])) {
-			if ($this->config['monolog'] instanceof \Monolog\Logger) {
+			if (is_a($this->config['monolog'], '\Monolog\Logger')) {
 				$this->monolog = &$this->config['monolog'];
 			} else {
 				throw new invalidConfigurationValue('monolog must be instance \Monolog\Logger');
 			}
 		}
 
+		/* finally should we turn on? */
 		$this->enabled = ($this->config['threshold'] > 0);
 	}
 
@@ -107,6 +105,10 @@ class Log
 
 	public function writeLog($level, $msg): bool
 	{
+		/**
+		 * This Method Has Multiple Exits
+		 */
+
 		if (!$this->enabled) {
 			return false;
 		}
@@ -115,7 +117,7 @@ class Log
 		$level = strtoupper($level);
 
 		/* bitwise PSR 3 Mode */
-		if ((!array_key_exists($level, $this->psr_levels)) || (!($this->config['threshold'] & $this->psr_levels[$level]))) {
+		if ((!array_key_exists($level, $this->psrLevels)) || (!($this->config['threshold'] & $this->psrLevels[$level]))) {
 			return false;
 		}
 
@@ -127,29 +129,31 @@ class Log
 		/* route to monolog */
 		switch ($level) {
 			case 'EMERGENCY': // 1
-				$this->monolog->addEmergency($msg);
+				$this->monolog->emergency($msg);
 				break;
 			case 'ALERT': // 2
-				$this->monolog->addAlert($msg);
+				$this->monolog->alert($msg);
 				break;
 			case 'CRITICAL': // 4
-				$this->monolog->addCritical($msg);
+				$this->monolog->critical($msg);
 				break;
 			case 'ERROR': // 8
-				$this->monolog->addError($msg);
+				$this->monolog->error($msg);
 				break;
 			case 'WARNING': // 16
-				$this->monolog->addWarning($msg);
+				$this->monolog->warning($msg);
 				break;
 			case 'NOTICE': // 32
-				$this->monolog->addNotice($msg);
+				$this->monolog->notice($msg);
 				break;
 			case 'INFO': // 64
-				$this->monolog->addInfo($msg);
+				$this->monolog->info($msg);
 				break;
 			case 'DEBUG': // 128
-				$this->monolog->addDebug($msg);
+				$this->monolog->debug($msg);
 				break;
+			default:
+				throw new InvalidValue($level);
 		}
 
 		return true;

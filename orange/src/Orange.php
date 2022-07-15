@@ -28,7 +28,7 @@ if (!function_exists('orange')) {
 
 		$container->log = new Log($container->config->log);
 
-		$container->events = new Event;
+		$container->events = new Event();
 
 		$container->input = new Input($container->config->input);
 

@@ -44,12 +44,12 @@ class Input
 
 	protected function _pick(string $type, ?string $name = null, $default = null)
 	{
-		$value = $default;
-
 		if ($name === null) {
 			$value = $this->input[$type];
 		} elseif (isset($this->input[$type][strtolower($name)])) {
 			$value = $this->input[$type][strtolower($name)];
+		} else {
+			$value = $default;
 		}
 
 		return $value;
