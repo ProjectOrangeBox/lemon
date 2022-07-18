@@ -27,7 +27,15 @@ if (!function_exists('run')) {
 
 		$container->reference('$config', $configArray);
 
-		$container->output->appendOutput($container->dispatcher->call($container->router->route($request_uri, $request_method)))->send();
+		$route = $container->router->route($request_uri, $request_method);
+
+		$container->events->trigger('before.controller', $container, $route);
+
+		$output = $container->dispatcher->call($route);
+
+		$container->events->trigger('after.controller', $container, $output);
+
+		$container->output->appendOutput($output)->send();
 	}
 }
 

@@ -20,7 +20,7 @@ class Container
 		if (is_array($serviceArray)) {
 			foreach ($serviceArray as $serviceName => $options) {
 				if (is_array($options)) {
-					$this->register($serviceName, $options[0], $options[1]);
+					$this->register($serviceName, $options[0], false);
 				} else {
 					$this->register($serviceName, $options, true);
 				}

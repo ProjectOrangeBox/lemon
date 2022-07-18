@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\exceptions\ControllerFileNotFound;
 use dmyers\orange\exceptions\ControllerClassNotFound;
 use dmyers\orange\exceptions\ControllerMethodNotFound;
 
@@ -22,32 +21,24 @@ class Dispatcher
 
 	public function call(array $route): ?string
 	{
-		$controllerFile = __ROOT__ . $route['controller'] . '.php';
+		$controllerClass = $route['controller'];
 
-		if (file_exists($controllerFile)) {
-			require_once $controllerFile;
+		if (class_exists($controllerClass)) {
 
-			$controllerClass = basename($route['controller']);
+			$method = $route['method'];
 
-			if (class_exists($controllerClass, false)) {
+			if (method_exists($controllerClass, $method)) {
+				/* we found something */
+				$matches = array_map(function ($value) {
+					return urldecode($value);
+				}, $route['args']);
 
-				$method = $route['method'];
-
-				if (method_exists($controllerClass, $method)) {
-					/* we found something */
-					$matches = array_map(function ($value) {
-						return urldecode($value);
-					}, $route['args']);
-
-					return (new $controllerClass($this->input, $this->output, $this->config))->$method(...$matches);
-				} else {
-					throw new ControllerMethodNotFound($method);
-				}
+				return (new $controllerClass($this->input, $this->output, $this->config))->$method(...$matches);
 			} else {
-				throw new ControllerClassNotFound($controllerClass);
+				throw new ControllerMethodNotFound($method);
 			}
 		} else {
-			throw new ControllerFileNotFound($controllerFile);
+			throw new ControllerClassNotFound($controllerClass);
 		}
 	}
 } /* end class */

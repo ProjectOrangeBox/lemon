@@ -16,7 +16,7 @@ return [
 		return new Log($container->config->log);
 	},
 	'events' => function (Container $container) {
-		return new Event();
+		return new Event($container->config->events);
 	},
 	'input' => function (Container $container) {
 		return new Input($container->config->input);
@@ -33,4 +33,7 @@ return [
 	'dispatcher' => function (Container $container) {
 		return new Dispatcher($container->input, $container->output, $container->config);
 	},
+	'foo' => [function (Container $container) {
+		return new Foo;
+	}],
 ];

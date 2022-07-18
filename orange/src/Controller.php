@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\Container;
-
 class Controller
 {
 	protected $output = null;

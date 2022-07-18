@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use dmyers\orange\exceptions\RouteNotFound;
+
 class Router
 {
 	const CONTROLLER = 0;
@@ -52,6 +54,7 @@ class Router
 			'matchedURI' => $route['url'],
 			'controller' => $route['callback'][self::CONTROLLER],
 			'method' => $route['callback'][self::METHOD],
+			'url' => $url,
 			'args' => $args
 		];
 

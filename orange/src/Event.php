@@ -23,6 +23,28 @@ class Event
 	 */
 	protected $listeners = [];
 
+	public function __construct(array $config)
+	{
+		foreach ($config as $name => $events) {
+			foreach ($events as $options) {
+				if ($this->is_closure($options[0])) {
+					$priority = isset($options[1]) ? $options[1] : self::PRIORITY_NORMAL;
+
+					$this->register($name, $options[0], $priority);
+				} else {
+					$priority = isset($options[3]) ? $options[3] : self::PRIORITY_NORMAL;
+
+					$this->register($name, function (&...$arguments) use ($options) {
+						$className = $options[0];
+						$classMethod = $options[1];
+
+						return (new $className)->$classMethod(...$arguments);
+					}, $priority);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Register a listener
 	 *
@@ -39,7 +61,7 @@ class Event
 	 * @return Event
 	 *
 	 */
-	public function register(string $name, $callable, int $priority = self::PRIORITY_NORMAL): Event
+	public function register(string $name, $callable, int $priority = self::PRIORITY_NORMAL): self
 	{
 		/* if they pass in a array treat it as a name=>closure pair */
 		if (is_array($name)) {
@@ -75,7 +97,7 @@ class Event
 	 * @access public
 	 *
 	 */
-	public function trigger(string $name, &...$arguments): Event
+	public function trigger(string $name, &...$arguments): self
 	{
 		/* clean up the name */
 		$this->normalizeName($name);
@@ -212,7 +234,7 @@ class Event
 	 * @return \Event
 	 *
 	 */
-	public function unregisterAll(): Event
+	public function unregisterAll(): self
 	{
 		$this->listeners = [];
 
@@ -267,5 +289,10 @@ class Event
 		}
 
 		return $sorted;
+	}
+
+	protected function is_closure($t)
+	{
+		return $t instanceof \Closure;
 	}
 } /* end class */
