@@ -28,11 +28,11 @@ class Event
 		foreach ($config as $name => $events) {
 			foreach ($events as $options) {
 				if ($this->is_closure($options[0])) {
-					$priority = isset($options[1]) ? $options[1] : self::PRIORITY_NORMAL;
+					$priority = $options[1] ?? self::PRIORITY_NORMAL;
 
 					$this->register($name, $options[0], $priority);
 				} else {
-					$priority = isset($options[3]) ? $options[3] : self::PRIORITY_NORMAL;
+					$priority = $options[3] ?? self::PRIORITY_NORMAL;
 
 					$this->register($name, function (&...$arguments) use ($options) {
 						$className = $options[0];

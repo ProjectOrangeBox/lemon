@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\libraries\Foo;
 use dmyers\orange\Log;
 use dmyers\orange\Event;
 use dmyers\orange\Input;
@@ -33,7 +34,12 @@ return [
 	'dispatcher' => function (Container $container) {
 		return new Dispatcher($container->input, $container->output, $container->config);
 	},
+	/* inside array = factory (ie. multiple) */
 	'foo' => [function (Container $container) {
 		return new Foo;
 	}],
+	/* not inside = singleton */
+	'bar' => function (Container $container) {
+		return new Foo;
+	},
 ];
