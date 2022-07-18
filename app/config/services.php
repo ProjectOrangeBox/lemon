@@ -8,28 +8,29 @@ use dmyers\orange\Input;
 use dmyers\orange\Config;
 use dmyers\orange\Output;
 use dmyers\orange\Router;
+use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
 
 return [
-	'log' => function (array $config) {
-		return new Log($config);
+	'log' => function (Container $container) {
+		return new Log($container->config->log);
 	},
-	'events' => function () {
+	'events' => function (Container $container) {
 		return new Event();
 	},
-	'input' => function (array $config) {
-		return new Input($config);
+	'input' => function (Container $container) {
+		return new Input($container->config->input);
 	},
-	'config' => function (string $configFolder) {
-		return new Config($configFolder);
+	'config' => function (Container $container) {
+		return new Config($container->get('$configFolderPath'));
 	},
-	'output' => function (array $config, input $input) {
-		return new Output($config, $input);
+	'output' => function (Container $container) {
+		return new Output($container->config->output, $container->input);
 	},
-	'router' => function (array $config, input $input) {
-		return new Router($config, $input);
+	'router' => function (Container $container) {
+		return new Router($container->config->routes, $container->input);
 	},
-	'dispatcher' => function (input $input, output $output, config $config) {
-		return new Dispatcher($input, $output, $config);
+	'dispatcher' => function (Container $container) {
+		return new Dispatcher($container->input, $container->output, $container->config);
 	},
 ];

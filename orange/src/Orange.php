@@ -3,36 +3,35 @@
 declare(strict_types=1);
 
 use dmyers\orange\Container;
+use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\ConfigNotFound;
+use dmyers\orange\exceptions\ConfigFileNotFound;
 
 if (!function_exists('run')) {
-	function run(string $configFolderPath, ?string $request_uri = null, ?string $request_method = null)
+	function run(array $configArray, ?string $request_uri = null, ?string $request_method = null)
 	{
-		$services = $configFolderPath . '/services.php';
-
-		if (!file_exists($services)) {
-			throw new ConfigNotFound('could not locate services');
+		if (!isset($configArray['services'])) {
+			throw new ConfigNotFound('services');
 		}
 
-		$container = new Container;
+		if (!file_exists($configArray['services'])) {
+			throw new ConfigFileNotFound($configArray['services']);
+		}
 
-		$container->services = require $services;
+		$serviceArray = require $configArray['services'];
 
-		$container->config = $container->services['config']($configFolderPath);
+		if (!is_array($serviceArray)) {
+			throw new InvalidValue($configArray['services']);
+		}
 
-		$container->log = $container->services['log']($container->config->log);
+		$container = new Container($serviceArray);
 
-		$container->event = $container->services['events']();
+		if (!isset($configArray['config folder'])) {
+			throw new ConfigNotFound('config folder');
+		}
 
-		$container->input = $container->services['input']($container->config->input);
+		$container->reference('$configFolderPath', $configArray['config folder']);
 
-		$container->router = $container->services['router']($container->config->routes, $container->input);
-
-		$container->output = $container->services['output']($container->config->output, $container->input);
-
-		$container->dispatcher = $container->services['dispatcher']($container->input, $container->output, $container->config);
-
-		/* away we go */
 		$container->output->appendOutput($container->dispatcher->call($container->router->route($request_uri, $request_method)))->send();
 	}
 }
@@ -51,6 +50,6 @@ if (!function_exists('exceptionHandler')) {
 if (!function_exists('logMsg')) {
 	function logMsg(string $msg, string $level = 'log')
 	{
-		(new \dmyers\orange\Container)->log->writeLog($level, $msg);
+		(new Container)->log->writeLog($level, $msg);
 	}
 }
