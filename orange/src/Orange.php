@@ -7,7 +7,7 @@ use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 if (!function_exists('run')) {
-	function run(array $config, ?string $request_uri = null, ?string $request_method = null)
+	function run(array $config)
 	{
 		if (!isset($config['services'])) {
 			throw new InvalidConfigurationValue('services');
@@ -29,7 +29,7 @@ if (!function_exists('run')) {
 
 		$container->events->trigger('before.router', $container);
 
-		$route = $container->router->route($request_uri, $request_method);
+		$route = $container->router->route($container->input->requestUri(), $container->input->requestMethod());
 
 		$container->events->trigger('before.controller', $container, $route);
 

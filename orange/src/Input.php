@@ -7,6 +7,8 @@ namespace dmyers\orange;
 class Input
 {
 	protected $input = [];
+	protected $requestType = '';
+	protected $requestMethod = '';
 
 	public function __construct(array $config)
 	{
@@ -15,6 +17,47 @@ class Input
 		$this->input['get'] = array_change_key_case($config['get'], CASE_LOWER);
 		$this->input['request'] = array_change_key_case($config['request'], CASE_LOWER);
 		$this->input['server'] = array_change_key_case($config['server'], CASE_LOWER);
+
+		/* setup the request type based on a few things */
+		$isAjax = (!empty($this->input['server']['http_x_requested_with']) && strtolower($this->input['server']['http_x_requested_with']) == 'xmlhttprequest');
+		$isJson = (!empty($this->input['server']['http_accept']) && strpos(strtolower($this->input['server']['http_accept']), 'application/json') !== false);
+		$isCli = (PHP_SAPI === 'cli' || defined('STDIN'));
+
+		if ($isAjax || $isJson) {
+			$this->requestType = 'AJAX';
+		} elseif ($isCli) {
+			$this->requestType = 'CLI';
+		} else {
+			$this->requestType = 'HTML';
+		}
+
+		/* get the http request method or default to cli */
+		$this->requestMethod = $this->input['server']['request_method'] ?? 'CLI';
+	}
+
+	public function requestUri(): string
+	{
+		return $this->input['server']['request_uri'];
+	}
+
+	public function requestMethod(): string
+	{
+		return strtoupper($this->requestMethod);
+	}
+
+	public function requestType(): string
+	{
+		return strtoupper($this->requestType);
+	}
+
+	public function isAjaxRequest(): bool
+	{
+		return ($this->requestType == 'AJAX');
+	}
+
+	public function isCliRequest(): bool
+	{
+		return ($this->requestType == 'CLI');
 	}
 
 	public function raw()

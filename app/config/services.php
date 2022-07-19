@@ -29,7 +29,7 @@ return [
 		return new Output($container->config->output, $container->input);
 	},
 	'router' => function (Container $container) {
-		return new Router($container->config->routes, $container->input);
+		return new Router($container->config->routes);
 	},
 	'dispatcher' => function (Container $container) {
 		return new Dispatcher($container->input, $container->output, $container->config);

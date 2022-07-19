@@ -15,10 +15,9 @@ class Router
 	protected $input = null;
 	protected $responds = [];
 
-	public function __construct(array $routes, input &$input)
+	public function __construct(array $routes)
 	{
 		$this->routes = $routes;
-		$this->input = $input;
 	}
 
 	public function responds(string $match = null) /* mixed string|array */
@@ -26,11 +25,8 @@ class Router
 		return (isset($this->responds[$match])) ? $this->responds[$match] : $this->responds;
 	}
 
-	public function route(?string $request_uri = null, ?string $request_method = null): array
+	public function route(string $requestUri, string $requestMethod): array
 	{
-		$requestMethod = ($request_method) ? $request_method : $this->input->server('request_method');
-		$requestUri = ($request_uri) ? $request_uri : $this->input->server('request_uri');
-
 		$url = false;
 		$requestMethod = strtoupper($requestMethod);
 
