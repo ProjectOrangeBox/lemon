@@ -37,7 +37,7 @@ class Container
 	 * $foo = $container->{'$var'};
 	 * $foo = $container->logger;
 	 *
-	 * @param string $serviceName [explicite description]
+	 * @param string $serviceName Service Name
 	 *
 	 * @return void
 	 */
@@ -59,10 +59,11 @@ class Container
 	 * Method __set
 	 * 
 	 * $container->{'$var'} = 'foobar;
-	 * $container->logger = new Loggie;
+	 * $container->logger = function(){};
+	 * $container->{'factory[]'} = function(){};
 	 * 
 	 *
-	 * @param string $serviceName [explicite description]
+	 * @param string $serviceName Service Name
 	 * @param $reference $reference [explicite description]
 	 *
 	 * @return void
@@ -92,7 +93,7 @@ class Container
 	 *
 	 * Check whether the Service been registered
 	 *
-	 * @param string $serviceName [explicite description]
+	 * @param string $serviceName Service Name
 	 * 
 	 * @return bool
 	 */
@@ -103,8 +104,10 @@ class Container
 
 	/**
 	 * Method __unset
+	 * 
+	 * Remove a service
 	 *
-	 * @param string $serviceName [explicite description]
+	 * @param string $serviceName Service Name
 	 *
 	 * @return void
 	 */
@@ -116,7 +119,8 @@ class Container
 	/**
 	 * Get the same instance of a service
 	 *
-	 * @param string $serviceName
+	 * @param string $serviceName Service Name
+	 * 
 	 * @return mixed
 	 */
 	protected function singleton(string $serviceName)
@@ -131,7 +135,8 @@ class Container
 	/**
 	 * Get new instance of a service
 	 *
-	 * @param string $serviceName
+	 * @param string $serviceName Service Name
+	 * 
 	 * @return mixed
 	 */
 	protected function factory(string $serviceName)
@@ -140,7 +145,7 @@ class Container
 	}
 
 	/**
-	 * returns a debug array
+	 * Return Debug Array
 	 *
 	 * @return array
 	 */
@@ -149,14 +154,32 @@ class Container
 		$debug = [];
 
 		foreach (self::$registeredServices as $key => $record) {
-			$debug[$key] = ['singleton' => $record['singleton'], 'attached' => isset(self::$registeredServices[$key]['reference'])];
+			if ($this->is_closure(self::$registeredServices[$key]['closure'])) {
+				$type = 'Service Generator';
+			} else {
+				$check = (isset(self::$registeredServices[$key]['reference'])) ? 'reference' : 'closure';
+				$type = gettype(self::$registeredServices[$key][$check]);
+			}
+
+			$debug[$key] = [
+				'singleton' => $record['singleton'],
+				'attached' => isset(self::$registeredServices[$key]['reference']),
+				'type' => $type,
+			];
 		}
 
 		return $debug;
 	}
 
-	protected function is_closure($t)
+	/**
+	 * Method is_closure
+	 *
+	 * @param $var Variable to test
+	 *
+	 * @return void
+	 */
+	protected function is_closure($var)
 	{
-		return $t instanceof \Closure;
+		return $var instanceof \Closure;
 	}
 } /* end class */
