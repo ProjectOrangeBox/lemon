@@ -15,6 +15,13 @@ class Container
 	 */
 	protected static $registeredServices = [];
 
+	/**
+	 * Method __construct
+	 *
+	 * @param array $serviceArray [array of services]
+	 *
+	 * @return void
+	 */
 	public function __construct(array $serviceArray = null)
 	{
 		if (is_array($serviceArray)) {
@@ -29,67 +36,71 @@ class Container
 	}
 
 	/**
-	 * __get
+	 * Method __get
+	 * 
+	 * $foo = $container->{'$var'};
+	 * $foo = $container->logger;
 	 *
-	 * see get(...)
+	 * @param string $serviceName [explicite description]
 	 *
-	 * @param mixed $serviceName
-	 * @return mixed
+	 * @return void
 	 */
-	public function __get($serviceName)
+	public function __get(string $serviceName)
 	{
-		return $this->get($serviceName);
-	}
-
-	/**
-	 * __isset
-	 *
-	 * see has(...)
-	 *
-	 * @param mixed $serviceName
-	 * @return bool
-	 */
-	public function __isset($serviceName): bool
-	{
-		return $this->has($serviceName);
-	}
-
-	public function __unset($serviceName)
-	{
-		unset(self::$registeredServices[strtolower($serviceName)]);
-	}
-
-	/**
-	 * Get a PHP object by service name
-	 *
-	 * @param string $serviceName
-	 * @return mixed
-	 */
-	public function get(string $serviceName)
-	{
-		$serviceName = strtolower($serviceName);
-
 		/* Is this service even registered? */
-		if (!isset(self::$registeredServices[$serviceName])) {
+		if (!$this->__isset($serviceName)) {
 			/* fatal */
 			throw new ServiceNotFound($serviceName);
 		}
+
+		$serviceName = strtolower($serviceName);
 
 		/* Is this a singleton or factory? */
 		return (self::$registeredServices[$serviceName]['singleton']) ? self::singleton($serviceName) : self::factory($serviceName);
 	}
 
 	/**
+	 * Method __set
+	 * 
+	 * $container->{'$var'} = 'foobar;
+	 * $container->logger = new Loggie;
+	 * 
+	 *
+	 * @param string $serviceName [explicite description]
+	 * @param $reference $reference [explicite description]
+	 *
+	 * @return void
+	 */
+	public function __set(string $serviceName, $reference): void
+	{
+		self::$registeredServices[strtolower($serviceName)] = ['closure' => null, 'singleton' => true, 'reference' => $reference];
+	}
+
+	/**
+	 * Method __isset
+	 *
 	 * Check whether the Service been registered
 	 *
-	 * @param string $serviceName
+	 * @param string $serviceName [explicite description]
+	 * 
 	 * @return bool
 	 */
-	public function has(string $serviceName): bool
+	public function __isset(string $serviceName): bool
 	{
 		return isset(self::$registeredServices[strtolower($serviceName)]);
 	}
 
+	/**
+	 * Method __unset
+	 *
+	 * @param string $serviceName [explicite description]
+	 *
+	 * @return void
+	 */
+	public function __unset(string $serviceName): void
+	{
+		unset(self::$registeredServices[strtolower($serviceName)]);
+	}
 
 	/**
 	 * Register a new service as a singleton or factory
@@ -102,11 +113,6 @@ class Container
 	public function register(string $serviceName, \Closure $closure, bool $singleton = false): void
 	{
 		self::$registeredServices[strtolower($serviceName)] = ['closure' => $closure, 'singleton' => $singleton, 'reference' => null];
-	}
-
-	public function reference(string $serviceName, $reference, bool $singleton = true): void
-	{
-		self::$registeredServices[strtolower($serviceName)] = ['closure' => null, 'singleton' => $singleton, 'reference' => $reference];
 	}
 
 	/**
@@ -140,7 +146,7 @@ class Container
 	 *
 	 * @return array
 	 */
-	public function debug(): array
+	public function __debugInfo(): array
 	{
 		$debug = [];
 

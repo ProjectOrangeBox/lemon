@@ -7,25 +7,27 @@ use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 if (!function_exists('run')) {
-	function run(array $configArray, ?string $request_uri = null, ?string $request_method = null)
+	function run(array $config, ?string $request_uri = null, ?string $request_method = null)
 	{
-		if (!isset($configArray['services'])) {
+		if (!isset($config['services'])) {
 			throw new InvalidConfigurationValue('services');
 		}
 
-		if (!file_exists($configArray['services'])) {
-			throw new ConfigFileNotFound($configArray['services']);
+		if (!file_exists($config['services'])) {
+			throw new ConfigFileNotFound($config['services']);
 		}
 
-		$serviceArray = require $configArray['services'];
+		$serviceArray = require $config['services'];
 
 		if (!is_array($serviceArray)) {
-			throw new InvalidConfigurationValue('services is not an array of services');
+			throw new InvalidConfigurationValue('Not an array of services');
 		}
 
 		$container = new Container($serviceArray);
 
-		$container->reference('$config', $configArray);
+		$container->{'$config'} = $config;
+
+		$container->events->trigger('before.router', $container);
 
 		$route = $container->router->route($request_uri, $request_method);
 
@@ -36,6 +38,8 @@ if (!function_exists('run')) {
 		$container->events->trigger('after.controller', $container, $output);
 
 		$container->output->appendOutput($output)->send();
+
+		$container->events->trigger('after.output', $container);
 	}
 }
 

@@ -23,7 +23,7 @@ return [
 		return new Input($container->config->input);
 	},
 	'config' => function (Container $container) {
-		return new Config($container->get('$config')['config folder']);
+		return new Config($container->{'$config'}['config folder']);
 	},
 	'output' => function (Container $container) {
 		return new Output($container->config->output, $container->input);
