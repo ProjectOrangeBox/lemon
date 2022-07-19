@@ -43,8 +43,28 @@ class TestController extends Controller
 
 		$html .= '<p>This is a test = ' . $c->{'$test'} . '<p>';
 
-		var_dump($c);
-
 		return $html;
+	}
+
+	public function bar()
+	{
+		$obj = new \StdClass;
+
+		$obj->name = "Don Myers";
+		$obj->age = 21;
+
+		$pet1 = new \StdClass;
+		$pet1->name = "Balley";
+		$pet1->age = 4;
+		$pet1->type = 'dog';
+
+		$pet2 = new \StdClass;
+		$pet2->name = "Manchester";
+		$pet2->age = 2;
+		$pet2->type = 'dog';
+
+		$obj->pets = [$pet1, $pet2];
+
+		return $this->output->view('json', ['json' => $obj]);
 	}
 } /* end class */

@@ -6,6 +6,8 @@ return [
 	/* home page */
 	['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index']],
 
+	['method' => 'GET', 'url' => '/test/bar', 'callback' => [\app\controllers\TestController::class, 'bar']],
+
 	['method' => 'GET', 'url' => '/test', 'callback' => [\app\controllers\TestController::class, 'foo']],
 
 	/* 'test/([a-z]+)/(\d+)' */

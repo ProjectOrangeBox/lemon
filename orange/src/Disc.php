@@ -1400,7 +1400,7 @@ class Disc
 	 *
 	 * @return void
 	 */
-	protected static function _time(string $requiredPath, string $dateFormat = null, string $function) /* int|string */
+	protected static function _time(string $requiredPath, string $dateFormat, string $function) /* int|string */
 	{
 		self::required($requiredPath);
 
