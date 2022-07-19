@@ -10,7 +10,7 @@ class Middleware
 {
 	public function before(Container &$container, array &$route)
 	{
-		if (substr($route['requestURI'], 0, 5) == '/test' && $route['requestMethod'] == 'GET' && isset($route['args'][0])) {
+		if (substr($route['requestURI'], 0, 5) == '/test' && $route['requestMethod'] == 'GET' && $route['has']) {
 			$route['args'][0] = '{{**}}' . $route['args'][0];
 		}
 	}
@@ -19,7 +19,7 @@ class Middleware
 	{
 		$route = $container->router->responds();
 
-		if (substr($route['requestURI'], 0, 5) == '/test' && $route['requestMethod'] == 'GET' && isset($route['args'][0])) {
+		if (substr($route['requestURI'], 0, 5) == '/test' && $route['requestMethod'] == 'GET' && $route['has']) {
 			$output = str_replace('{{**}}', 'It\'s just bikes: ', $output);
 		}
 	}

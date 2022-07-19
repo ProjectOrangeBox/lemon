@@ -32,10 +32,13 @@ class Router
 		$requestUri = ($request_uri) ? $request_uri : $this->input->server('request_uri');
 
 		$url = false;
+		$requestMethod = strtoupper($requestMethod);
 
 		foreach ($this->routes as $route) {
+			$matchedMethod = strtoupper($route['method']);
+
 			/* check if the current request matches the expression */
-			if ((strtoupper($requestMethod) == strtoupper($route['method']) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $args)) {
+			if (($requestMethod == $matchedMethod || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $args)) {
 				/* remove the first arg */
 				$url = array_shift($args);
 
@@ -52,10 +55,13 @@ class Router
 			'requestMethod' => $requestMethod,
 			'requestURI' => $requestUri,
 			'matchedURI' => $route['url'],
+			'matchedMethod' => $matchedMethod,
 			'controller' => $route['callback'][self::CONTROLLER],
 			'method' => $route['callback'][self::METHOD],
 			'url' => $url,
-			'args' => $args
+			'args' => $args,
+			'count' => count($args),
+			'has' => (bool)count($args),
 		];
 
 		return $this->responds;
