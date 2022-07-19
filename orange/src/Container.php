@@ -25,12 +25,8 @@ class Container
 	public function __construct(array $serviceArray = null)
 	{
 		if (is_array($serviceArray)) {
-			foreach ($serviceArray as $serviceName => $options) {
-				if (is_array($options)) {
-					$this->register($serviceName, $options[0], false);
-				} else {
-					$this->register($serviceName, $options, true);
-				}
+			foreach ($serviceArray as $serviceName => $option) {
+				$this->__set($serviceName, $option);
 			}
 		}
 	}
@@ -71,9 +67,24 @@ class Container
 	 *
 	 * @return void
 	 */
-	public function __set(string $serviceName, $reference): void
+	public function __set(string $serviceName, $option): void
 	{
-		self::$registeredServices[strtolower($serviceName)] = ['closure' => null, 'singleton' => true, 'reference' => $reference];
+		$singleton = true;
+
+		if (substr($serviceName, -2) == '[]') {
+			$serviceName = substr($serviceName, 0, -2);
+			$singleton = false;
+		}
+
+		if ($this->is_closure($option)) {
+			$closure = $option;
+			$reference = null;
+		} else {
+			$closure = null;
+			$reference = $option;
+		}
+
+		self::$registeredServices[strtolower($serviceName)] = ['closure' => $closure, 'singleton' => $singleton, 'reference' => $reference];
 	}
 
 	/**
@@ -100,19 +111,6 @@ class Container
 	public function __unset(string $serviceName): void
 	{
 		unset(self::$registeredServices[strtolower($serviceName)]);
-	}
-
-	/**
-	 * Register a new service as a singleton or factory
-	 *
-	 * @param string $serviceName Service Name
-	 * @param closure $closure closure to call in order to instancate it.
-	 * @param bool $singleton should this be a singleton or factory
-	 * @return void
-	 */
-	public function register(string $serviceName, \Closure $closure, bool $singleton = false): void
-	{
-		self::$registeredServices[strtolower($serviceName)] = ['closure' => $closure, 'singleton' => $singleton, 'reference' => null];
 	}
 
 	/**
@@ -155,5 +153,10 @@ class Container
 		}
 
 		return $debug;
+	}
+
+	protected function is_closure($t)
+	{
+		return $t instanceof \Closure;
 	}
 } /* end class */

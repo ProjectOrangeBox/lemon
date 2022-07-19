@@ -35,6 +35,13 @@ class TestController extends Controller
 		$f4 = $c->bar;
 		$f4->set('name', 'Peter');
 
-		return $f1->get('name') . ' / ' . $f2->get('name') . ' / ' . $f3->get('name') . ' / ' . $f4->get('name');
+		$html  = '<p>Don = ' . $f1->get('name') . '</p>';
+		$html .= '<p>Jen = ' . $f2->get('name') . '</p>';
+		$html .= '<p>Peter = ' . $f3->get('name') . '</p>';
+		$html .= '<p>Peter = ' . $f4->get('name') . '</p>';
+
+		$html .= '<p>This is a test = ' . $c->{'$test'} . '<p>';
+
+		return $html;
 	}
 } /* end class */

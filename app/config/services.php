@@ -35,11 +35,12 @@ return [
 		return new Dispatcher($container->input, $container->output, $container->config);
 	},
 	/* inside array = factory (ie. multiple) */
-	'foo' => [function (Container $container) {
+	'foo[]' => function (Container $container) {
 		return new Foo;
-	}],
+	},
 	/* not inside = singleton */
 	'bar' => function (Container $container) {
 		return new Foo;
 	},
+	'$test' => 'This is a test',
 ];
