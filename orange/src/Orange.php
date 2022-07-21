@@ -63,33 +63,6 @@ if (!function_exists('logMsg')) {
 	}
 }
 
-if (!function_exists('getPath')) {
-	/**
-	 * Provides auto merging of "merge" fields in {} format
-	 *
-	 * @param $uri
-	 *
-	 * @return
-	 *
-	 * #### Example
-	 * ```
-	 * $url = getPath('/{www theme}/assets/css');
-	 * ```
-	 */
-	function getPath(string $uri): string
-	{
-		$keys = [];
-		$values = [];
-
-		foreach ((new Container)->config->path as $find => $replace) {
-			$keys[] = '{' . strtolower($find) . '}';
-			$values[] = $replace;
-		}
-
-		return str_replace($keys, $values, $uri);
-	}
-}
-
 /**
  * get a environmental variable with support for default
  *

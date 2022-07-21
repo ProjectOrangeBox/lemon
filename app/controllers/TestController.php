@@ -46,7 +46,11 @@ class TestController extends Controller
 		$html .= '<p>' . env('DEBUG') . '</p>';
 		$html .= '<p>' . env('ENVIRONMENT') . '</p>';
 
-		$html .= '<p>' . getPath('/assets/{js}/folder') . '</p>';
+		$html .= '<p>' . $c->router->getUrl('product', 'abc', 123) . '</p>';
+		$html .= '<p>' . $c->router->getUrl('product', 'xyz', 890) . '</p>';
+		$html .= '<p>' . $c->router->getUrl('test', 'abc', 123) . '</p>';
+		$html .= '<p>' . $c->router->getUrl('home') . '</p>';
+		$html .= '<p>' . $c->router->getUrl('assets') . '</p>';
 
 		return $html;
 	}
