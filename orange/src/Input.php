@@ -21,7 +21,7 @@ class Input
 		/* setup the request type based on a few things */
 		$isAjax = (!empty($this->input['server']['http_x_requested_with']) && strtolower($this->input['server']['http_x_requested_with']) == 'xmlhttprequest');
 		$isJson = (!empty($this->input['server']['http_accept']) && strpos(strtolower($this->input['server']['http_accept']), 'application/json') !== false);
-		$isCli = (PHP_SAPI === 'cli' || defined('STDIN'));
+		$isCli = (strtoupper(PHP_SAPI) === 'CLI' || defined('STDIN'));
 
 		if ($isAjax || $isJson) {
 			$this->requestType = 'AJAX';

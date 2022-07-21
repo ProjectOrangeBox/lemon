@@ -6,6 +6,8 @@ use dmyers\orange\Container;
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
+define('NOVALUE', '54d4b3fd5fNOVALUE7743e3c7ecb');
+
 if (!function_exists('run')) {
 	function run(array $config)
 	{
@@ -58,5 +60,59 @@ if (!function_exists('logMsg')) {
 	function logMsg(string $msg, string $level = 'INFO')
 	{
 		(new Container)->log->writeLog($level, $msg);
+	}
+}
+
+if (!function_exists('getPath')) {
+	/**
+	 * Provides auto merging of "merge" fields in {} format
+	 *
+	 * @param $uri
+	 *
+	 * @return
+	 *
+	 * #### Example
+	 * ```
+	 * $url = getPath('/{www theme}/assets/css');
+	 * ```
+	 */
+	function getPath(string $uri): string
+	{
+		$keys = [];
+		$values = [];
+
+		foreach ((new Container)->config->path as $find => $replace) {
+			$keys[] = '{' . strtolower($find) . '}';
+			$values[] = $replace;
+		}
+
+		return str_replace($keys, $values, $uri);
+	}
+}
+
+/**
+ * get a environmental variable with support for default
+ *
+ * @param $key string environmental variable you want to load
+ * @param $default mixed the default value if environmental variable isn't set
+ *
+ * @return string
+ *
+ * @throws \Exception
+ *
+ * #### Example
+ * ```
+ * $foo = env('key');
+ * $foo = env('key2','default value');
+ * ```
+ */
+if (!function_exists('env')) {
+	function env(string $key, $default = NOVALUE)
+	{
+		if (!isset($_ENV[$key]) && $default === NOVALUE) {
+			throw new \Exception('The environmental variable "' . $key . '" is not set and no default was provided.');
+		}
+
+		return (isset($_ENV[$key])) ? $_ENV[$key] : $default;
 	}
 }

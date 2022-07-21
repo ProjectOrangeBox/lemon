@@ -43,6 +43,11 @@ class TestController extends Controller
 
 		$html .= '<p>This is a test = ' . $c->{'$test'} . '<p>';
 
+		$html .= '<p>' . env('DEBUG') . '</p>';
+		$html .= '<p>' . env('ENVIRONMENT') . '</p>';
+
+		$html .= '<p>' . getPath('/assets/{js}/folder') . '</p>';
+
 		return $html;
 	}
 

@@ -52,7 +52,7 @@ class Container
 		$serviceName = strtolower($serviceName);
 
 		/* Is this a singleton or factory? */
-		return (self::$registeredServices[$serviceName]['singleton']) ? self::singleton($serviceName) : self::factory($serviceName);
+		return (self::$registeredServices[$serviceName]['singleton']) ? $this->singleton($serviceName) : $this->factory($serviceName);
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Container
 			$singleton = false;
 		}
 
-		if ($this->is_closure($option)) {
+		if ($option instanceof \Closure) {
 			$closure = $option;
 			$reference = null;
 		} else {
@@ -85,7 +85,11 @@ class Container
 			$reference = $option;
 		}
 
-		self::$registeredServices[strtolower($serviceName)] = ['closure' => $closure, 'singleton' => $singleton, 'reference' => $reference];
+		self::$registeredServices[strtolower($serviceName)] = [
+			'closure' => $closure,
+			'singleton' => $singleton,
+			'reference' => $reference
+		];
 	}
 
 	/**
@@ -126,7 +130,7 @@ class Container
 	protected function singleton(string $serviceName)
 	{
 		if (!isset(self::$registeredServices[$serviceName]['reference'])) {
-			self::$registeredServices[$serviceName]['reference'] = self::factory($serviceName);
+			self::$registeredServices[$serviceName]['reference'] = $this->factory($serviceName);
 		}
 
 		return self::$registeredServices[$serviceName]['reference'];
@@ -154,7 +158,7 @@ class Container
 		$debug = [];
 
 		foreach (self::$registeredServices as $key => $record) {
-			if ($this->is_closure(self::$registeredServices[$key]['closure'])) {
+			if (self::$registeredServices[$key]['closure'] instanceof \Closure) {
 				$type = 'Service Generator';
 			} else {
 				$check = (isset(self::$registeredServices[$key]['reference'])) ? 'reference' : 'closure';
@@ -169,17 +173,5 @@ class Container
 		}
 
 		return $debug;
-	}
-
-	/**
-	 * Method is_closure
-	 *
-	 * @param $var Variable to test
-	 *
-	 * @return void
-	 */
-	protected function is_closure($var)
-	{
-		return $var instanceof \Closure;
 	}
 } /* end class */
