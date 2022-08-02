@@ -616,20 +616,6 @@ class disc
 	}
 
 	/**
-	 * Method requiredStream
-	 *
-	 * @param $handle $handle [explicite description]
-	 *
-	 * @return void
-	 */
-	protected static function requiredStream($handle): void
-	{
-		if (\get_resource_type($handle) != 'stream') {
-			throw new FileSystemStreamException();
-		}
-	}
-
-	/**
 	 * Method fclose
 	 *
 	 * @param $handle $handle [explicite description]
@@ -1267,24 +1253,6 @@ class disc
 	}
 
 	/**
-	 * Method changeModeOnBytes
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param int $bytes [bytes written]
-	 * @param ?int $chmod [explicite description]
-	 *
-	 * @return int
-	 */
-	public static function changeModeOnBytes(string $path, int $bytes, ?int $chmod): int
-	{
-		if ($bytes && $chmod) {
-			self::changePermissions($path, $chmod);
-		}
-
-		return $bytes;
-	}
-
-	/**
 	 * Method removePhpFileFromOpcache
 	 *
 	 * @param string $path [path to file/directory]
@@ -1391,6 +1359,62 @@ class disc
 	}
 
 	/**
+	 * PROTECTED
+	 */
+
+	/**
+	 * Method _listRecursive
+	 *
+	 * @param string $pattern [explicite description]
+	 * @param int $flags [explicite description]
+	 *
+	 * @return array
+	 */
+	protected static function _listRecursive(string $pattern, int $flags = 0): array
+	{
+		$files = \glob($pattern, $flags);
+
+		foreach (\glob(\dirname($pattern) . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR | GLOB_NOSORT) as $directory) {
+			/* recursive loop */
+			$files = \array_merge($files, self::_listRecursive($directory . DIRECTORY_SEPARATOR . \basename($pattern), $flags));
+		}
+
+		return $files;
+	}
+
+	/**
+	 * Method changeModeOnBytes
+	 *
+	 * @param string $path [path to file/directory]
+	 * @param int $bytes [bytes written]
+	 * @param ?int $chmod [explicite description]
+	 *
+	 * @return int
+	 */
+	protected static function changeModeOnBytes(string $path, int $bytes, ?int $chmod): int
+	{
+		if ($bytes && $chmod) {
+			self::changePermissions($path, $chmod);
+		}
+
+		return $bytes;
+	}
+
+	/**
+	 * Method requiredStream
+	 *
+	 * @param $handle $handle [explicite description]
+	 *
+	 * @return void
+	 */
+	protected static function requiredStream($handle): void
+	{
+		if (\get_resource_type($handle) != 'stream') {
+			throw new FileSystemStreamException();
+		}
+	}
+
+	/**
 	 * Method autoGenMissingDirectory
 	 *
 	 * @param string $requiredPath [explicite description]
@@ -1420,26 +1444,6 @@ class disc
 		$timestamp = $function(self::resolve($requiredPath));
 
 		return ($timestamp && $dateFormat) ? date($dateFormat, $timestamp) : $timestamp;
-	}
-
-	/**
-	 * Method _listRecursive
-	 *
-	 * @param string $pattern [explicite description]
-	 * @param int $flags [explicite description]
-	 *
-	 * @return array
-	 */
-	protected static function _listRecursive(string $pattern, int $flags = 0): array
-	{
-		$files = \glob($pattern, $flags);
-
-		foreach (\glob(\dirname($pattern) . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR | GLOB_NOSORT) as $directory) {
-			/* recursive loop */
-			$files = \array_merge($files, self::_listRecursive($directory . DIRECTORY_SEPARATOR . \basename($pattern), $flags));
-		}
-
-		return $files;
 	}
 } /* end class */
 
