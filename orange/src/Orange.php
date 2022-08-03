@@ -98,3 +98,22 @@ if (!function_exists('env')) {
 		return (isset($_ENV[$key])) ? $_ENV[$key] : $default;
 	}
 }
+
+/**
+ * Method setUpConfig
+ *
+ * @param string $configFilePath [explicite description]
+ *
+ * @return array
+ */
+if (!function_exists('setUpConfig')) {
+	function setUpConfig(string $configFilePath): array
+	{
+		/* get local .env and merge with $_ENV */
+		$env = (file_exists(__ROOT__ . '/.env')) ? parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED) : [];
+		$_ENV = array_replace($_ENV, $env);
+
+		/* merge any $_ENV over values in config */
+		return array_replace(require $configFilePath, $_ENV);
+	}
+}
