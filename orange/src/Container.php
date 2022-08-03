@@ -33,7 +33,7 @@ class Container
 
 	/**
 	 * Method __get
-	 * 
+	 *
 	 * $foo = $container->{'$var'};
 	 * $foo = $container->logger;
 	 *
@@ -57,11 +57,11 @@ class Container
 
 	/**
 	 * Method __set
-	 * 
+	 *
 	 * $container->{'$var'} = 'foobar;
 	 * $container->logger = function(){};
 	 * $container->{'factory[]'} = function(){};
-	 * 
+	 *
 	 *
 	 * @param string $serviceName Service Name
 	 * @param $reference $reference [explicite description]
@@ -98,7 +98,7 @@ class Container
 	 * Check whether the Service been registered
 	 *
 	 * @param string $serviceName Service Name
-	 * 
+	 *
 	 * @return bool
 	 */
 	public function __isset(string $serviceName): bool
@@ -108,7 +108,7 @@ class Container
 
 	/**
 	 * Method __unset
-	 * 
+	 *
 	 * Remove a service
 	 *
 	 * @param string $serviceName Service Name
@@ -124,7 +124,7 @@ class Container
 	 * Get the same instance of a service
 	 *
 	 * @param string $serviceName Service Name
-	 * 
+	 *
 	 * @return mixed
 	 */
 	protected function singleton(string $serviceName)
@@ -140,7 +140,7 @@ class Container
 	 * Get new instance of a service
 	 *
 	 * @param string $serviceName Service Name
-	 * 
+	 *
 	 * @return mixed
 	 */
 	protected function factory(string $serviceName)

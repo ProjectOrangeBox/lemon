@@ -27,7 +27,7 @@ class Event
 	{
 		foreach ($config as $name => $events) {
 			foreach ($events as $options) {
-				if ($this->is_closure($options[0])) {
+				if ($this->isClosure($options[0])) {
 					$priority = $options[1] ?? self::PRIORITY_NORMAL;
 
 					$this->register($name, $options[0], $priority);
@@ -291,7 +291,7 @@ class Event
 		return $sorted;
 	}
 
-	protected function is_closure($t)
+	protected function isClosure($t)
 	{
 		return $t instanceof \Closure;
 	}

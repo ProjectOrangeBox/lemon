@@ -17,6 +17,8 @@ class Input
 		$this->input['get'] = array_change_key_case($config['get'], CASE_LOWER);
 		$this->input['request'] = array_change_key_case($config['request'], CASE_LOWER);
 		$this->input['server'] = array_change_key_case($config['server'], CASE_LOWER);
+		$this->input['env'] = array_change_key_case($config['env'], CASE_LOWER);
+		$this->input['cookie'] = array_change_key_case($config['cookie'], CASE_LOWER);
 
 		/* setup the request type based on a few things */
 		$isAjax = (!empty($this->input['server']['http_x_requested_with']) && strtolower($this->input['server']['http_x_requested_with']) == 'xmlhttprequest');
@@ -62,30 +64,40 @@ class Input
 
 	public function raw()
 	{
-		return $this->_pick('raw');
+		return $this->pick('raw');
 	}
 
 	public function post(string $name = null, $default = null)
 	{
-		return $this->_pick('post', $name, $default);
+		return $this->pick('post', $name, $default);
 	}
 
 	public function get(string $name = null, $default = null)
 	{
-		return $this->_pick('get', $name, $default);
+		return $this->pick('get', $name, $default);
 	}
 
 	public function request(string $name = null, $default = null)
 	{
-		return $this->_pick('request', $name, $default);
+		return $this->pick('request', $name, $default);
 	}
 
 	public function server(string $name = null, $default = null)
 	{
-		return $this->_pick('server', $name, $default);
+		return $this->pick('server', $name, $default);
 	}
 
-	protected function _pick(string $type, ?string $name = null, $default = null)
+	public function env(string $name = null, $default = null)
+	{
+		return $this->pick('env', $name, $default);
+	}
+
+	public function cookie(string $name = null, $default = null)
+	{
+		return $this->pick('cookie', $name, $default);
+	}
+
+	protected function pick(string $type, ?string $name = null, $default = null)
 	{
 		if ($name === null) {
 			$value = $this->input[$type];

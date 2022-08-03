@@ -14,7 +14,7 @@ declare(strict_types=1);
  *   "files": ["src/Disc.php"]
  * }
  */
-class disc
+class Disc
 {
 	const JSONFLAGS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
 
@@ -217,7 +217,7 @@ class disc
 	{
 		self::required(dirname($pattern));
 
-		return self::stripRootPath(self::_listRecursive(self::resolve($pattern), $flags));
+		return self::stripRootPath(self::listRecursive(self::resolve($pattern), $flags));
 	}
 
 	/**
@@ -317,7 +317,7 @@ class disc
 	 */
 	public static function accessTime(string $requiredPath, string $dateFormat = null) /* int|string */
 	{
-		return self::_time($requiredPath, $dateFormat, 'fileatime');
+		return self::timeFormat($requiredPath, $dateFormat, 'fileatime');
 	}
 
 	/**
@@ -329,7 +329,7 @@ class disc
 	 */
 	public static function changeTime(string $requiredPath, string $dateFormat = null) /* int|string */
 	{
-		return self::_time($requiredPath, $dateFormat, 'filectime');
+		return self::timeFormat($requiredPath, $dateFormat, 'filectime');
 	}
 
 	/**
@@ -341,7 +341,7 @@ class disc
 	 */
 	public static function modificationTime(string $requiredPath, string $dateFormat = null) /* int|string */
 	{
-		return self::_time($requiredPath, $dateFormat, 'filemtime');
+		return self::timeFormat($requiredPath, $dateFormat, 'filemtime');
 	}
 
 	/**
@@ -415,7 +415,7 @@ class disc
 	 * Method changeGroup
 	 *
 	 * @param string $requiredPath [explicite description]
-	 * @param $group $group [explicite description]
+	 * @param $group [explicite description]
 	 *
 	 * @return bool
 	 */
@@ -430,7 +430,7 @@ class disc
 	 * Method changeOwner
 	 *
 	 * @param string $requiredPath [explicite description]
-	 * @param $user $user [explicite description]
+	 * @param $user [explicite description]
 	 *
 	 * @return bool
 	 */
@@ -1280,17 +1280,14 @@ class disc
 	 * Method bytesToString
 	 *
 	 * @param int $bytes [explicite description]
-	 * @param int $precision [explicite description]
 	 *
 	 * @return string
 	 */
-	public static function bytesToString(int $bytes, int $precision = 2): string
+	public static function bytesToString(int $bytes): string
 	{
-		for ($i = 0; ($bytes / 1024) > 0.9; $i++, $bytes /= 1024) {
-			/* dummy */
-		}
+		$i = floor(log($bytes, 1024));
 
-		return round($bytes, $precision) . ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
+		return round($bytes / pow(1024, $i), [0, 0, 2, 2, 3][$i]) . ['B', 'kB', 'MB', 'GB', 'TB'][$i];
 	}
 
 	/**
@@ -1307,28 +1304,36 @@ class disc
 
 		if (1 & $option) {
 			switch ($mode & 0xF000) {
-				case 0xC000: // socket
+					// socket
+				case 0xC000:
 					$info = 's';
 					break;
-				case 0xA000: // symbolic link
+					// symbolic link
+				case 0xA000:
 					$info = 'l';
 					break;
-				case 0x8000: // regular
+					// regular
+				case 0x8000:
 					$info = 'r';
 					break;
-				case 0x6000: // block special
+					// block special
+				case 0x6000:
 					$info = 'b';
 					break;
-				case 0x4000: // directory
+					// directory
+				case 0x4000:
 					$info = 'd';
 					break;
-				case 0x2000: // character special
+					// character special
+				case 0x2000:
 					$info = 'c';
 					break;
-				case 0x1000: // FIFO pipe
+					// FIFO pipe
+				case 0x1000:
 					$info = 'p';
 					break;
-				default: // unknown
+					// unknown
+				default:
 					$info = 'u';
 			}
 		}
@@ -1358,20 +1363,20 @@ class disc
 	 */
 
 	/**
-	 * Method _listRecursive
+	 * Method listRecursive
 	 *
 	 * @param string $pattern [explicite description]
 	 * @param int $flags [explicite description]
 	 *
 	 * @return array
 	 */
-	protected static function _listRecursive(string $pattern, int $flags = 0): array
+	protected static function listRecursive(string $pattern, int $flags = 0): array
 	{
 		$files = \glob($pattern, $flags);
 
 		foreach (\glob(\dirname($pattern) . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR | GLOB_NOSORT) as $directory) {
 			/* recursive loop */
-			$files = \array_merge($files, self::_listRecursive($directory . DIRECTORY_SEPARATOR . \basename($pattern), $flags));
+			$files = \array_merge($files, self::listRecursive($directory . DIRECTORY_SEPARATOR . \basename($pattern), $flags));
 		}
 
 		return $files;
@@ -1424,7 +1429,7 @@ class disc
 	}
 
 	/**
-	 * Method _time
+	 * Method time
 	 *
 	 * @param string $requiredPath [explicite description]
 	 * @param string $dateFormat [explicite description]
@@ -1432,7 +1437,7 @@ class disc
 	 *
 	 * @return void
 	 */
-	protected static function _time(string $requiredPath, string $dateFormat, string $function) /* int|string */
+	protected static function timeFormat(string $requiredPath, string $dateFormat, string $function) /* int|string */
 	{
 		self::required($requiredPath);
 

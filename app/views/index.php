@@ -20,6 +20,11 @@
 	<p>
 		<a href="/test/123/123">Test 123 123 - Error</a>
 	</p>
+
+	<p>
+		<?= $name ?> <?= $version ?>
+	</p>
+
 </body>
 
 </html>

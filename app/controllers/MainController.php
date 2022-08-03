@@ -10,6 +10,9 @@ class MainController extends Controller
 {
 	public function index()
 	{
-		return $this->output->view('/index');
+		$data['name'] = $this->input->env('name');
+		$data['version'] = $this->input->env('version');
+
+		return $this->output->view('/index', $data);
 	}
 } /* end class */

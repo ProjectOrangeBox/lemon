@@ -34,6 +34,7 @@ return [
 	'dispatcher' => function (Container $container) {
 		return new Dispatcher($container->input, $container->output, $container->config);
 	},
+
 	/* inside array = factory (ie. multiple) */
 	'foo[]' => function (Container $container) {
 		return new Foo;

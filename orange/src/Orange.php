@@ -3,14 +3,23 @@
 declare(strict_types=1);
 
 use dmyers\orange\Container;
+use dmyers\orange\exceptions\ConfigNotFound;
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
-define('NOVALUE', '54d4b3fd5fNOVALUE7743e3c7ecb');
+define('NOVALUE', '__#NOVALUE#__');
 
 if (!function_exists('run')) {
 	function run(array $config)
 	{
+		define('DEBUG', env('DEBUG', false));
+		define('ENVIRONMENT', env('ENVIRONMENT', 'production'));
+
+		/* user custom loader */
+		if (file_exists(__ROOT__ . '/app/Bootstrap.php')) {
+			require_once __ROOT__ . '/app/Bootstrap.php';
+		}
+
 		if (!isset($config['services'])) {
 			throw new InvalidConfigurationValue('services');
 		}
@@ -19,7 +28,7 @@ if (!function_exists('run')) {
 			throw new ConfigFileNotFound($config['services']);
 		}
 
-		$serviceArray = require $config['services'];
+		$serviceArray = require_once $config['services'];
 
 		if (!is_array($serviceArray)) {
 			throw new InvalidConfigurationValue('Not an array of services');
@@ -83,7 +92,7 @@ if (!function_exists('env')) {
 	function env(string $key, $default = NOVALUE)
 	{
 		if (!isset($_ENV[$key]) && $default === NOVALUE) {
-			throw new \Exception('The environmental variable "' . $key . '" is not set and no default was provided.');
+			throw new ConfigNotFound('The environmental variable "' . $key . '" is not set and no default was provided.');
 		}
 
 		return (isset($_ENV[$key])) ? $_ENV[$key] : $default;

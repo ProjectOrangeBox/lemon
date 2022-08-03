@@ -8,4 +8,6 @@ return [
 	'get' => $_GET,
 	'request' => $_REQUEST,
 	'server' => $_SERVER,
+	'env' => $_ENV,
+	'cookie' => $_COOKIE,
 ];
