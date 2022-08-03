@@ -1277,25 +1277,20 @@ class disc
 	}
 
 	/**
-	 * Method sizeFormatted
+	 * Method bytesToString
 	 *
 	 * @param int $bytes [explicite description]
+	 * @param int $precision [explicite description]
 	 *
 	 * @return string
 	 */
-	public static function bytesToString(int $bytes): string
+	public static function bytesToString(int $bytes, int $precision = 2): string
 	{
-		if ($bytes >= 1073741824) {
-			$fileSize = round($bytes / 1024 / 1024 / 1024, 1) . 'GB';
-		} elseif ($bytes >= 1048576) {
-			$fileSize = round($bytes / 1024 / 1024, 1) . 'MB';
-		} elseif ($bytes >= 1024) {
-			$fileSize = round($bytes / 1024, 1) . 'KB';
-		} else {
-			$fileSize = $bytes . ' bytes';
+		for ($i = 0; ($bytes / 1024) > 0.9; $i++, $bytes /= 1024) {
+			/* dummy */
 		}
 
-		return $fileSize;
+		return round($bytes, $precision) . ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
 	}
 
 	/**
