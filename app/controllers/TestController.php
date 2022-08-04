@@ -22,7 +22,7 @@ class TestController extends Controller
 	{
 		Disc::root(__ROOT__);
 
-		Disc::save('/new.ini', [
+		Disc::save('/foobar/new.ini', [
 			'section1' => [
 				'name' => 'frank',
 				'age' => 24,
@@ -33,7 +33,7 @@ class TestController extends Controller
 			]
 		]);
 
-		$ini = Disc::load('/new.ini');
+		$ini = Disc::load('/foobar/new.ini');
 
 		d($ini);
 

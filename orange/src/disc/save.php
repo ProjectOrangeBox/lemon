@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace dmyers\orange\disc;
 
 use SplFileInfo;
-use dmyers\orange\disc\exceptions\discException;
+use dmyers\orange\disc\exceptions\DiscException;
 
 class Save extends SplFileInfo
 {
 	const JSONFLAGS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+
+	protected $bytes = 0;
 
 	public function __construct(string $path, $input = null, ?int $chmod = null, $arg1 = null)
 	{
@@ -20,19 +22,24 @@ class Save extends SplFileInfo
 		if ($input) {
 			switch (\pathinfo($path, PATHINFO_EXTENSION)) {
 				case 'ini':
-					$bytes = $this->ini((array)$input, $chmod);
+					$this->bytes = $this->ini((array)$input, $chmod);
 					break;
 				case 'json':
 					$arg1 = ($arg1) ?? false;
-					$bytes = $this->json($input, $arg1, null, null, $chmod);
+					$this->bytes = $this->json($input, $arg1, null, null, $chmod);
 					break;
 				case 'php':
-					$bytes = $this->php($input, $chmod);
+					$this->bytes = $this->php($input, $chmod);
 					break;
 				default:
-					$bytes = $this->content($input, (int)$arg1, $chmod);
+					$this->bytes = $this->content($input, (int)$arg1, $chmod);
 			}
 		}
+	}
+
+	public function written(): bool
+	{
+		return ($this->bytes > 0);
 	}
 
 	/**
@@ -122,7 +129,7 @@ class Save extends SplFileInfo
 	{
 		$path = $this->getPathname();
 
-		$bytes = Disc::changeModeOnBytes($path, Disc::atomicSaveContent($path, $this->exportPhp($data)), $chmod);
+		$bytes = $this->changeModeOnBytes($path, Disc::atomicSaveContent($path, $this->exportPhp($data)), $chmod);
 
 		/* if it's cached we need to flush it out so the old one isn't loaded */
 		Disc::removePhpFileFromOpcache($path);
@@ -146,7 +153,7 @@ class Save extends SplFileInfo
 	{
 		$path = $this->getPathname();
 
-		return Disc::changeModeOnBytes($path, Disc::atomicSaveContent($path, $this->exportJson($jsonObj, $pretty, $flags, $depth)), $chmod);
+		return $this->changeModeOnBytes($path, Disc::atomicSaveContent($path, $this->exportJson($jsonObj, $pretty, $flags, $depth)), $chmod);
 	}
 
 	/**
@@ -162,7 +169,7 @@ class Save extends SplFileInfo
 	{
 		$path = $this->getPathname();
 
-		return Disc::changeModeOnBytes($path, Disc::atomicSaveContent($path, $this->exportIni($array)), $chmod);
+		return $this->changeModeOnBytes($path, Disc::atomicSaveContent($path, $this->exportIni($array)), $chmod);
 	}
 
 	public function content($content, ?int $flags = 0, ?int $chmod = null): int
@@ -180,6 +187,15 @@ class Save extends SplFileInfo
 			$bytes = Disc::atomicSaveContent($path, $content);
 		}
 
-		return Disc::changeModeOnBytes($path, $bytes, $chmod);
+		return $this->changeModeOnBytes($path, $bytes, $chmod);
+	}
+
+	public function changeModeOnBytes(string $path, int $bytes, ?int $chmod): int
+	{
+		if ($bytes && $chmod) {
+			\chmod(Disc::resolve($path), $chmod);
+		}
+
+		return $bytes;
 	}
 } /* end class */

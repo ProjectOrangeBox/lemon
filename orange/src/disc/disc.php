@@ -8,7 +8,7 @@ use dmyers\orange\disc\File;
 use dmyers\orange\disc\Load;
 use dmyers\orange\disc\Save;
 use dmyers\orange\disc\Directory;
-use dmyers\orange\disc\exceptions\discException;
+use dmyers\orange\disc\exceptions\DiscException;
 
 /**
  * File System Functions
@@ -338,15 +338,6 @@ class Disc
 		}
 
 		return $info;
-	}
-
-	public static function changeModeOnBytes(string $path, int $bytes, ?int $chmod): int
-	{
-		if ($bytes && $chmod) {
-			\chmod(self::resolve($path), $chmod);
-		}
-
-		return $bytes;
 	}
 
 	public static function autoGenMissingDirectory(string $requiredPath)

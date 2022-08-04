@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace dmyers\orange\disc;
 
 use SplFileInfo;
-use dmyers\orange\disc\exceptions\discException;
+use dmyers\orange\disc\exceptions\DiscException;
 
 class Load extends SplFileInfo
 {
