@@ -20,6 +20,10 @@ class Config
 		foreach (glob($path . '/*.php') as $file) {
 			$this->__set(basename($file, '.php'), require $file);
 		}
+
+		if (file_exists(__ROOT__ . '/.env')) {
+			$this->container = array_replace_recursive($this->container, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
+		}
 	}
 
 	public function __set($name, $value)
