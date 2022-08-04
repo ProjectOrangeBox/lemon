@@ -6,9 +6,8 @@
             "app\\": "app/"
         },
         "files": [
-            "orange/src/Disc.php",
             "orange/src/Orange.php",
-            "larapack/dd/src/helper.php"
+            "vendor/larapack/dd/src/helper.php"
         ]
     },
     "authors": [{

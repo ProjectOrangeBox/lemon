@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
+use dmyers\orange\Disc;
 use dmyers\orange\Container;
 use dmyers\orange\Controller;
 
@@ -15,6 +16,43 @@ class TestController extends Controller
 		logMsg('foobar', 'CRITICAL');
 
 		return $this->output->view('/test', ['arg1' => $arg1, 'id' => $id]);
+	}
+
+	public function disc()
+	{
+		Disc::root(__ROOT__);
+
+		$list = Disc::list('/');
+
+		d($list);
+
+		$file = Disc::create('/foobar.txt');
+
+		$file->writeLine('Hello World!');
+
+		$file = Disc::append('/foobar.txt');
+
+		$file->writeLine('Good Bye World!');
+
+		$w = $file->isWritable();
+
+		d($w);
+
+		$w = $file->isDirectory();
+
+		d($w);
+
+		$info = $file->info();
+
+		d($info);
+
+		$file = $file->rename('barfoo.txt');
+
+		d($file->info());
+
+		$file->touch();
+
+		exit(0);
 	}
 
 	public function foo()

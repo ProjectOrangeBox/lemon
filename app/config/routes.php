@@ -7,6 +7,7 @@ return [
 	['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],
 
 	['method' => 'GET', 'url' => '/test/bar', 'callback' => [\app\controllers\TestController::class, 'bar']],
+	['method' => 'GET', 'url' => '/test/disc', 'callback' => [\app\controllers\TestController::class, 'disc']],
 
 	['method' => 'GET', 'url' => '/test', 'callback' => [\app\controllers\TestController::class, 'foo']],
 

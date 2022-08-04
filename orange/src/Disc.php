@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+namespace dmyers\orange;
+
+use dmyers\orange\File;
+use dmyers\orange\exceptions\discSystemException;
+
 /**
  * File System Functions
  *
@@ -34,7 +39,7 @@ class Disc
 		$realpath = \realpath($path);
 
 		if (!$realpath) {
-			throw new \FileSystemException('"' . $path . '" is not a valid directory.');
+			throw new discSystemException('"' . $path . '" is not a valid directory.');
 		}
 
 		/* save it */
@@ -87,7 +92,7 @@ class Disc
 	public static function resolve(string $path, bool $remove = false): string
 	{
 		if (empty(self::$rootPath)) {
-			throw new \FileSystemException(__METHOD__ . ' root path is not defined. Use disc::root(...).');
+			throw new discSystemException(__METHOD__ . ' root path is not defined. Use disc::root(...).');
 		}
 
 		/* strip it if root path is already present */
@@ -120,6 +125,18 @@ class Disc
 	}
 
 	/**
+	 * Method fileExists
+	 *
+	 * @param string $path [path to file/directory]
+	 *
+	 * @return bool
+	 */
+	public function exists(string $path): bool
+	{
+		return \file_exists(Disc::resolve($path));
+	}
+
+	/**
 	 * Method required
 	 *
 	 * Check to see if path or file is present
@@ -134,7 +151,7 @@ class Disc
 		$success = \file_exists(self::resolve($path));
 
 		if (!$success) {
-			throw new \FileSystemException('No such file or directory. ' . $path);
+			throw new discSystemException('No such file or directory. ' . $path);
 		}
 
 		return $success;
@@ -198,11 +215,11 @@ class Disc
 	 *
 	 * @return array
 	 */
-	public static function list(string $pattern, int $flags = 0): array
+	public static function list(string $requiredPath, string $pattern = '*', int $flags = 0): array
 	{
-		self::required(dirname($pattern));
+		self::required($requiredPath);
 
-		return self::stripRootPath(\glob(self::resolve($pattern), $flags));
+		return self::stripRootPath(\glob(self::resolve($requiredPath . '/' . $pattern), $flags));
 	}
 
 	/**
@@ -213,545 +230,45 @@ class Disc
 	 *
 	 * @return array
 	 */
-	public static function listAll(string $pattern, int $flags = 0): array
-	{
-		self::required(dirname($pattern));
-
-		return self::stripRootPath(self::listRecursive(self::resolve($pattern), $flags));
-	}
-
-	/**
-	 * Returns trailing name component of path
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param string $suffix
-	 *
-	 * @return string
-	 */
-	public static function filename(string $path, string $suffix = ''): string
-	{
-		return \basename($path, $suffix);
-	}
-
-	/**
-	 * dirname — Returns a parent directory's path
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param int $levels The number of parent directories to go up.
-	 *
-	 * @return string
-	 */
-	public static function directory(string $path, int $levels = 1): string
-	{
-		return \dirname($path, $levels);
-	}
-
-	/**
-	 * Method isDir
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return bool
-	 */
-	public static function isDirectory(string $path): bool
-	{
-		return \is_dir(self::resolve($path));
-	}
-
-	/**
-	 * Method isWriteable
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return bool
-	 */
-	public static function isWriteable(string $path): bool
-	{
-		return \is_writable(self::resolve($path));
-	}
-
-	/**
-	 * Method isFile
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return bool
-	 */
-	public static function isFile(string $path): bool
-	{
-		return \is_file(self::resolve($path));
-	}
-
-	/**
-	 * Method isReadable
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return bool
-	 */
-	public static function isReadable(string $path): bool
-	{
-		return \is_readable(self::resolve($path));
-	}
-
-	/**
-	 * filesize — Gets file size
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return mixed
-	 */
-	public static function size(string $requiredPath): int
+	public static function listAll(string $requiredPath, string $pattern = '*', int $flags = 0): array
 	{
 		self::required($requiredPath);
 
-		return \filesize(self::resolve($requiredPath));
-	}
-
-	/**
-	 * fileatime — Gets last access time of file
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return int
-	 */
-	public static function accessTime(string $requiredPath, string $dateFormat = null) /* int|string */
-	{
-		return self::timeFormat($requiredPath, $dateFormat, 'fileatime');
-	}
-
-	/**
-	 * filectime — Gets inode change time of file
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return int
-	 */
-	public static function changeTime(string $requiredPath, string $dateFormat = null) /* int|string */
-	{
-		return self::timeFormat($requiredPath, $dateFormat, 'filectime');
-	}
-
-	/**
-	 * filemtime — Gets file modification time
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return int
-	 */
-	public static function modificationTime(string $requiredPath, string $dateFormat = null) /* int|string */
-	{
-		return self::timeFormat($requiredPath, $dateFormat, 'filemtime');
-	}
-
-	/**
-	 * filegroup — Gets file group
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return mixed
-	 */
-	public static function group(string $requiredPath, bool $details = false) /* array|int|false */
-	{
-		self::required($requiredPath);
-
-		$id = \filegroup(self::resolve($requiredPath));
-
-		return ($id && $details) ? posix_getgrgid($id) : $id;
-	}
-
-	/**
-	 * fileowner — Gets file owner
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return int
-	 */
-	public static function owner(string $requiredPath, bool $details = false) /* array|int|false */
-	{
-		self::required($requiredPath);
-
-		$id = \fileowner(self::resolve($requiredPath));
-
-		return ($id && $details) ? posix_getpwuid($id) : $id;
-	}
-
-	/**
-	 * fileperms — Gets file permissions
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return int
-	 */
-	public static function permissions(string $requiredPath, int $options = 0)
-	{
-		self::required($requiredPath);
-
-		$success = \fileperms(self::resolve($requiredPath));
-
-		if ($options) {
-			$success = self::permissionsFormatted($success, $options);
-		}
-
-		return $success;
-	}
-
-	/**
-	 * Method changePermissions
-	 *
-	 * @param string $requiredPath [explicite description]
-	 * @param int $mode [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function changePermissions(string $requiredPath, int $mode): bool
-	{
-		self::required($requiredPath);
-
-		return \chmod(self::resolve($requiredPath), $mode);
-	}
-
-	/**
-	 * Method changeGroup
-	 *
-	 * @param string $requiredPath [explicite description]
-	 * @param $group [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function changeGroup(string $requiredPath, $group): bool
-	{
-		self::required($requiredPath);
-
-		return \chgrp(self::resolve($requiredPath), $group);
-	}
-
-	/**
-	 * Method changeOwner
-	 *
-	 * @param string $requiredPath [explicite description]
-	 * @param $user [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function changeOwner(string $requiredPath, $user): bool
-	{
-		self::required($requiredPath);
-
-		return \chown(self::resolve($requiredPath), $user);
-	}
-
-	/**
-	 * fileinode — Gets file inode
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return mixed
-	 */
-	public static function inode(string $requiredPath) /* int|false */
-	{
-		self::required($requiredPath);
-
-		return \fileinode(self::resolve($requiredPath));
-	}
-
-	/**
-	 * filetype — Gets file type
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return mixed
-	 */
-	public static function type(string $requiredPath) /* string|false */
-	{
-		self::required($requiredPath);
-
-		return \filetype(self::resolve($requiredPath));
-	}
-
-	/**
-	 * info — Gives information about a file
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return mixed
-	 */
-	public static function info(string $requiredPath = '/', ?string $option = null, $arg1 = null) /* array|false */
-	{
-		self::required($requiredPath);
-
-		$info = \stat(self::resolve($requiredPath));
-		$info += \pathInfo(self::resolve($requiredPath));
-
-
-		$info['dirname'] = self::resolve($info['dirname'], true);
-		$info['type'] = \filetype(self::resolve($requiredPath));
-
-		$dateFormat = ($arg1) ? $arg1 : 'r';
-		$info['atime_display'] = date($dateFormat, $info['atime']);
-		$info['mtime_display'] = date($dateFormat, $info['mtime']);
-		$info['ctime_display'] = date($dateFormat, $info['ctime']);
-
-		$info['permissions_display'] = self::permissions($requiredPath, 3);
-		$info['permissions_t'] = self::permissions($requiredPath, 1);
-		$info['permissions_ugw'] = self::permissions($requiredPath, 2);
-
-		$info['uid_display'] = self::owner($requiredPath, true)['name'];
-		$info['gid_display'] = self::group($requiredPath, true)['name'];
-
-		$info['size_display'] = self::size($requiredPath, true);
-
-		$info['isDirectory'] = (bool)self::isDirectory($requiredPath);
-		$info['isWritable'] = (bool)self::isWriteable($requiredPath);
-		$info['isReadable'] = (bool)self::isReadable($requiredPath);
-		$info['isFile'] = (bool)self::isFile($requiredPath);
-
-		$info['root'] = self::$rootPath;
-
-		if ($option) {
-			if (!in_array($option, $info)) {
-				throw new FileSystemException('Unknown option ' . $option);
-			}
-
-			$info = $info[$option];
-		}
-
-		return $info;
-	}
-
-	/**
-	 * Returns information about a file path
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param int $options
-	 *
-	 * @return mixed
-	 */
-	public static function pathInfo(string $path, int $options = PATHINFO_DIRNAME | PATHINFO_BASENAME | PATHINFO_EXTENSION | PATHINFO_FILENAME) /* array|string */
-	{
-		$pathinfo = \pathinfo($path, $options);
-
-		/* resolve path */
-		if (\is_array($pathinfo) && isset($pathinfo['dirname'])) {
-			$pathinfo['dirname'] = self::resolve($pathinfo['dirname'], true);
-		} elseif ($options == PATHINFO_DIRNAME) {
-			$pathinfo = self::resolve($pathinfo, true);
-		}
-
-		return $pathinfo;
+		return self::stripRootPath(self::listRecursive(self::resolve($requiredPath . '/' . $pattern), $flags));
 	}
 
 
-	/**
-	 * Method fileExists
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return bool
-	 */
-	public static function exists(string $path): bool
-	{
-		return \file_exists(self::resolve($path));
-	}
-
-	/**
-	 * file — Reads entire file into an array
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param int $flags
-	 *
-	 * @return mixed
-	 */
-	public static function readAsArray(string $requiredPath, int $flags = 0): array
-	{
-		self::required($requiredPath);
-
-		return \file(self::resolve($requiredPath), $flags);
-	}
-
-	/**
-	 * Reads a file and writes it to the output buffer.
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return mixed
-	 */
-	public static function echo(string $requiredPath): int
-	{
-		self::required($requiredPath);
-
-		return \readfile(self::resolve($requiredPath));
-	}
-
-	/**
-	 * fopen — Opens file or URL
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param string $mode
-	 *
-	 * @return resource
-	 */
 	public static function open(string $path, string $mode = 'r') /* resource|false */
 	{
+		if (is_dir(self::resolve($path))) {
+			throw new discSystemException('Cannot Open Directory');
+		}
+
 		if (in_array($mode, ['r', 'r+'])) {
 			self::required($path);
 		} else {
 			self::autoGenMissingDirectory($path);
 		}
 
-		return \fopen(self::resolve($path), $mode);
+		return new File(self::resolve($path), $mode);
 	}
 
-	/**
-	 * Method create
-	 *
-	 * @param string $path [explicite description]
-	 * @param string $mode [explicite description]
-	 *
-	 * @return void
-	 */
+	public static function append(string $path, string $mode = 'a')  /* resource|false */
+	{
+		return self::open($path, $mode);
+	}
+
 	public static function create(string $path, string $mode = 'w') /* resource|false */
 	{
 		return self::open($path, $mode);
 	}
 
-	/**
-	 * Method fclose
-	 *
-	 * @param $handle $handle [explicite description]
-	 *
-	 * @return void
-	 */
-	public static function close($handle): bool
+	public static function file(string $path)
 	{
-		self::requiredStream($handle);
-
-		return \fclose($handle);
+		return self::open($path, 'r');
 	}
 
-	/**
-	 * Method fwrite
-	 *
-	 * @param $handle $handle [explicite description]
-	 * @param string $string [explicite description]
-	 * @param int $length [explicite description]
-	 *
-	 * @return int
-	 */
-	public static function write($handle, string $string, ?int $length = null) /* int|false */
-	{
-		self::requiredStream($handle);
-
-		$length = ($length) ?? strlen($string);
-
-		return \fwrite($handle, $string, $length);
-	}
-
-	/**
-	 * Method feof
-	 *
-	 * @param $stream $stream [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function eof($handle): bool
-	{
-		self::requiredStream($handle);
-
-		return \feof($handle);
-	}
-
-	/**
-	 * Method fgetc
-	 *
-	 * @param $stream $stream [explicite description]
-	 *
-	 * @return void
-	 */
-	public static function character($handle)
-	{
-		self::requiredStream($handle);
-
-		return \fgetc($handle);
-	}
-
-	/**
-	 * Method getCharacters
-	 *
-	 * @param $handle $handle [explicite description]
-	 * @param int $length [explicite description]
-	 *
-	 * @return void
-	 */
-	public static function characters($handle, $length = false)
-	{
-		self::requiredStream($handle);
-
-		return ($length > 0) ? \fread($handle, $length) : \fgets($handle);
-	}
-
-	/**
-	 * Method fgetcsv
-	 *
-	 * @param $stream $stream [explicite description]
-	 * @param int $length [explicite description]
-	 * @param string $separator [explicite description]
-	 * @param " $enclosure [explicite description]
-	 * @param string $escape [explicite description]
-	 *
-	 * @return array
-	 */
-	public static function csvRow($handle, int $length = 0, string $separator = ",", string $enclosure = '"', string $escape = "\\"): array
-	{
-		self::requiredStream($handle);
-
-		return \fgetcsv($handle, $length, $separator, $enclosure, $escape);
-	}
-
-	/**
-	 * Method flock
-	 *
-	 * @param $stream $stream [explicite description]
-	 * @param int $operation [explicite description]
-	 * @param int $wouldBlock [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function lock($handle, int $operation, int &$wouldBlock = null): bool
-	{
-		self::requiredStream($handle);
-
-		return \flock($handle, $operation, $wouldBlock);
-	}
-
-	/**
-	 * Method ftell
-	 *
-	 * @param $stream $stream [explicite description]
-	 *
-	 * @return int
-	 */
-	public static function position($handle): int
-	{
-		self::requiredStream($handle);
-
-		return \ftell($handle);
-	}
-
-	public static function createMissingDirectory(string $path, int $mode = 0777): bool
-	{
-		return self::createDirectory(dirname($path), $mode, true);
-	}
-
-	/**
-	 * mkdir — Makes directory
-	 *
-	 * @param string $path
-	 * @param int $mode
-	 * @param bool $recursive
-	 * @return bool
-	 */
-	public static function createDirectory(string $path, int $mode = 0777, bool $recursive = true): bool
+	public static function makeDirectory(string $path, int $mode = 0777, bool $recursive = true): bool
 	{
 		$path = self::resolve($path);
 
@@ -767,42 +284,7 @@ class Disc
 	}
 
 	/**
-	 * Method touch
-	 *
-	 * @param string $path [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function touch(string $path): bool
-	{
-		self::autoGenMissingDirectory($path);
-
-		return \touch(self::resolve($path));
-	}
-
-	/**
-	 * rename — Renames a file or directory
-	 *
-	 * @param string $oldname
-	 * @param string $newname
-	 * @return bool
-	 */
-	public static function move(string $oldname, string $newname): bool
-	{
-		self::required($oldname);
-
-		self::autoGenMissingDirectory($newname);
-
-		return \rename(self::resolve($oldname), self::resolve($newname));
-	}
-
-	public static function rename(string $oldname, string $newname): bool
-	{
-		return self::move($oldname, $newname);
-	}
-
-	/**
-	 * Method remove
+	 * Method rmdirRecursive
 	 *
 	 * @param string $path [explicite description]
 	 *
@@ -810,87 +292,37 @@ class Disc
 	 */
 	public static function remove(string $path): bool
 	{
-		/* exists is tested in each function */
-		return self::isDirectory($path) ? self::removeDirectory($path) : self::removeFile($path);
-	}
+		self::required($path);
 
-	/**
-	 * Method rmdirRecursive
-	 *
-	 * @param string $path [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function removeDirectory(string $path): bool
-	{
-		$success = false;
+		$path = self::resolve($path);
 
-		if (self::exists($path)) {
-			$path = self::resolve($path);
-
-			$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
-
-			foreach ($files as $fileinfo) {
-				if ($fileinfo->isDir()) {
-					self::removeDirectory($fileinfo->getRealPath());
-				} else {
-					\unlink($fileinfo->getRealPath());
-				}
-			}
-
-			$success = \rmdir($path);
+		if (!is_dir($path)) {
+			throw new discSystemException('Directory Not Found');
 		}
 
-		return $success;
+		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+
+		foreach ($files as $fileinfo) {
+			if ($fileinfo->isDir()) {
+				self::remove($fileinfo->getRealPath());
+			} else {
+				\unlink($fileinfo->getRealPath());
+			}
+		}
+
+		return \rmdir($path);
 	}
 
-	public static function removeFile(string $path): bool
-	{
-		return self::exists($path) ? \unlink(self::resolve($path)) : false;
-	}
-
-	/**
-	 * copy — Copies file
-	 *
-	 * @param string $source
-	 * @param string $dest
-	 * @return bool
-	 */
 	public static function copy(string $source, string $destination): bool
-	{
-		return (self::isDirectory($source)) ? self::copyDirectory($source, $destination) : self::copyFile($source, $destination);
-	}
-
-	/**
-	 * Method copyFile
-	 *
-	 * @param string $source [explicite description]
-	 * @param string $dest [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function copyFile(string $source, string $destination): bool
-	{
-		self::required($source);
-
-		self::autoGenMissingDirectory($destination);
-
-		return \copy(self::resolve($source), self::resolve($destination));
-	}
-
-	/**
-	 * Method copyFolder
-	 *
-	 * @param string $source [explicite description]
-	 * @param string $dest [explicite description]
-	 *
-	 * @return bool
-	 */
-	public static function copyDirectory(string $source, string $destination): bool
 	{
 		self::required($source);
 
 		$source = self::resolve($source);
+
+		if (!is_dir($source)) {
+			throw new discSystemException('Directory Not Found');
+		}
+
 		$destination = self::resolve($destination);
 
 		$dir = \opendir($source);
@@ -902,7 +334,7 @@ class Disc
 		while (false !== ($file = \readdir($dir))) {
 			if (($file != '.') && ($file != '..')) {
 				if (\is_dir($source . '/' . $file)) {
-					self::copyDirectory($source . '/' . $file, $destination . '/' . $file);
+					self::copy($source . '/' . $file, $destination . '/' . $file);
 				} else {
 					\copy($source . '/' . $file, $destination . '/' . $file);
 				}
@@ -913,6 +345,8 @@ class Disc
 
 		return true;
 	}
+
+	/* New Methods */
 
 	/**
 	 * Method varPhp
@@ -930,7 +364,7 @@ class Disc
 		} elseif (\is_scalar($input)) {
 			$string = '<?php return "' . \str_replace('"', '\"', $input) . '";';
 		} else {
-			throw new \FileSystemException('Unknown input type.');
+			throw new discSystemException('Unknown input type.');
 		}
 
 		return $string;
@@ -1032,7 +466,7 @@ class Disc
 		$json = json_decode(self::loadContent($requiredPath), true);
 
 		if (json_last_error() !== JSON_ERROR_NONE) {
-			throw new \FileSystemException('JSON file "' . $requiredPath . '" is not valid JSON.');
+			throw new discSystemException('JSON file "' . $requiredPath . '" is not valid JSON.');
 		}
 
 		return $json;
@@ -1055,7 +489,7 @@ class Disc
 		$ini = \parse_ini_file(self::resolve($requiredPath), $processSections, $scannerMode);
 
 		if (!$ini) {
-			throw new \FileSystemException('INI file "' . $requiredPath . '" is not valid.');
+			throw new discSystemException('INI file "' . $requiredPath . '" is not valid.');
 		}
 
 		return $ini;
@@ -1224,7 +658,7 @@ class Disc
 
 		/* is this directory writeable */
 		if (!is_writable($directory)) {
-			throw new \FileSystemException($directory . ' is not writable.');
+			throw new discSystemException($directory . ' is not writable.');
 		}
 
 		/* create a temporary file with unique file name and prefix */
@@ -1232,7 +666,7 @@ class Disc
 
 		/* did we get a temporary filename */
 		if ($temporaryFile === false) {
-			throw new \FileSystemException('Could not create temporary file ' . $temporaryFile . '.');
+			throw new discSystemException('Could not create temporary file ' . $temporaryFile . '.');
 		}
 
 		/* write to the temporary file */
@@ -1240,12 +674,12 @@ class Disc
 
 		/* did we write anything? */
 		if ($bytes === false) {
-			throw new \FileSystemException('No bytes written by file_put_contents');
+			throw new discSystemException('No bytes written by file_put_contents');
 		}
 
 		/* move it into place - this is the atomic function */
 		if (\rename($temporaryFile, $path) === false) {
-			throw new \FileSystemException('Could not rename temporary file ' . $temporaryFile . ' ' . $path . '.');
+			throw new discSystemException('Could not rename temporary file ' . $temporaryFile . ' ' . $path . '.');
 		}
 
 		/* return the number of bytes written */
@@ -1265,25 +699,13 @@ class Disc
 	}
 
 	/**
-	 * Method object
-	 *
-	 * @param string $path [path to file/directory]
-	 *
-	 * @return SplFileObject
-	 */
-	public static function object(string $path): SplFileObject
-	{
-		return new SplFileObject(self::resolve($path));
-	}
-
-	/**
 	 * Method bytesToString
 	 *
 	 * @param int $bytes [explicite description]
 	 *
 	 * @return string
 	 */
-	public static function bytesToString(int $bytes): string
+	public static function formatSize(int $bytes): string
 	{
 		$i = floor(log($bytes, 1024));
 
@@ -1298,7 +720,7 @@ class Disc
 	 *
 	 * @return string
 	 */
-	public static function permissionsFormatted(int $mode, int $option = 3): string
+	public static function formatPermissions(int $mode, int $option = 3): string
 	{
 		$info = '';
 
@@ -1382,75 +804,32 @@ class Disc
 		return $files;
 	}
 
-	/**
-	 * Method changeModeOnBytes
-	 *
-	 * @param string $path [path to file/directory]
-	 * @param int $bytes [bytes written]
-	 * @param ?int $chmod [explicite description]
-	 *
-	 * @return int
-	 */
-	protected static function changeModeOnBytes(string $path, int $bytes, ?int $chmod): int
+	public static function changeModeOnBytes(string $path, int $bytes, ?int $chmod): int
 	{
 		if ($bytes && $chmod) {
-			self::changePermissions($path, $chmod);
+			\chmod(self::resolve($path), $chmod);
 		}
 
 		return $bytes;
 	}
 
-	/**
-	 * Method requiredStream
-	 *
-	 * @param $handle $handle [explicite description]
-	 *
-	 * @return void
-	 */
-	protected static function requiredStream($handle): void
-	{
-		if (\get_resource_type($handle) != 'stream') {
-			throw new FileSystemStreamException();
-		}
-	}
-
-	/**
-	 * Method autoGenMissingDirectory
-	 *
-	 * @param string $requiredPath [explicite description]
-	 *
-	 * @return void
-	 */
-	protected static function autoGenMissingDirectory(string $requiredPath)
+	public static function autoGenMissingDirectory(string $requiredPath)
 	{
 		if (self::$autoGenerateDirectories) {
-			self::createMissingDirectory($requiredPath);
+			self::makeDirectory(dirname($requiredPath));
 		}
 	}
 
-	/**
-	 * Method time
-	 *
-	 * @param string $requiredPath [explicite description]
-	 * @param string $dateFormat [explicite description]
-	 * @param string $function [explicite description]
-	 *
-	 * @return void
-	 */
-	protected static function timeFormat(string $requiredPath, string $dateFormat, string $function) /* int|string */
+	public static function rename(File $fileObj, string $newname): File
 	{
-		self::required($requiredPath);
+		Disc::autoGenMissingDirectory($newname);
 
-		$timestamp = $function(self::resolve($requiredPath));
+		$oldname = $fileObj->getRealPath();
 
-		return ($timestamp && $dateFormat) ? date($dateFormat, $timestamp) : $timestamp;
+		$fileObj = null; /* close */
+
+		\rename($oldname, Disc::resolve($newname));
+
+		return self::file($newname);
 	}
 } /* end class */
-
-class FileSystemException extends \Exception
-{
-}
-
-class FileSystemStreamException extends \FileSystemException
-{
-}
