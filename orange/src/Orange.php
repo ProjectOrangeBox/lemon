@@ -10,6 +10,13 @@ use dmyers\orange\exceptions\InvalidConfigurationValue;
 define('NOVALUE', '__#NOVALUE#__');
 
 if (!function_exists('run')) {
+	/**
+	 * Method run
+	 *
+	 * @param array $config [explicite description]
+	 *
+	 * @return void
+	 */
 	function run(array $config)
 	{
 		define('DEBUG', env('DEBUG', false));
@@ -55,6 +62,13 @@ if (!function_exists('run')) {
 }
 
 if (!function_exists('exceptionHandler')) {
+	/**
+	 * Method exceptionHandler
+	 *
+	 * @param \Throwable $exception [explicite description]
+	 *
+	 * @return void
+	 */
 	function exceptionHandler(\Throwable $exception)
 	{
 		$classes = explode('\\', get_class($exception));
@@ -66,54 +80,48 @@ if (!function_exists('exceptionHandler')) {
 }
 
 if (!function_exists('logMsg')) {
+	/**
+	 * Method logMsg
+	 *
+	 * @param string $msg [explicite description]
+	 * @param string $level [explicite description]
+	 *
+	 * @return void
+	 */
 	function logMsg(string $msg, string $level = 'INFO')
 	{
 		(new Container)->log->writeLog($level, $msg);
 	}
 }
 
-/**
- * get a environmental variable with support for default
- *
- * @param $key string environmental variable you want to load
- * @param $default mixed the default value if environmental variable isn't set
- *
- * @return string
- *
- * @throws \Exception
- *
- * #### Example
- * ```
- * $foo = env('key');
- * $foo = env('key2','default value');
- * ```
- */
 if (!function_exists('env')) {
-	function env(string $key, $default = NOVALUE)
+	/**
+	 * Method env
+	 *
+	 * Get a environmental variable with support for default
+	 *
+	 * @param $key string environmental variable you want to load
+	 * @param $default mixed the default value if environmental variable isn't set
+	 *
+	 * @return mixed
+	 */
+	function env(string $key, $default = NOVALUE) /* mixed */
 	{
-		if (!isset($_ENV[$key]) && $default === NOVALUE) {
+		static $env = [];
+
+		/* setp only the first time */
+		if (!$env) {
+			$env = $_ENV;
+
+			if (file_exists(__ROOT__ . '/.env')) {
+				$env = array_replace($env, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
+			}
+		}
+
+		if (!isset($env[$key]) && $default === NOVALUE) {
 			throw new ConfigNotFound('The environmental variable "' . $key . '" is not set and no default was provided.');
 		}
 
-		return (isset($_ENV[$key])) ? $_ENV[$key] : $default;
-	}
-}
-
-/**
- * Method setUpConfig
- *
- * @param string $configFilePath [explicite description]
- *
- * @return array
- */
-if (!function_exists('setUpConfig')) {
-	function setUpConfig(string $configFilePath): array
-	{
-		/* get local .env and merge with $_ENV */
-		$env = (file_exists(__ROOT__ . '/.env')) ? parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED) : [];
-		$_ENV = array_replace($_ENV, $env);
-
-		/* merge any $_ENV over values in config */
-		return array_replace(require $configFilePath, $_ENV);
+		return (isset($env[$key])) ? $env[$key] : $default;
 	}
 }

@@ -7,7 +7,8 @@
         },
         "files": [
             "orange/src/Disc.php",
-            "orange/src/Orange.php"
+            "orange/src/Orange.php",
+            "larapack/dd/src/helper.php"
         ]
     },
     "authors": [{
@@ -15,6 +16,7 @@
         "email": "donmyers@me.com"
     }],
     "require": {
-        "monolog/monolog": "^2.7"
+        "monolog/monolog": "^2.7",
+        "larapack/dd": "^1.1"
     }
 }
