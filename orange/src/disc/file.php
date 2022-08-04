@@ -9,11 +9,9 @@ use dmyers\orange\disc\exceptions\FileException;
 
 class File extends SplFileObject
 {
-	public function __construct(string $path)
+	public function __construct(string $path, string $mode)
 	{
-		$path = Disc::resolve($path);
-
-		parent::__construct($path);
+		parent::__construct($path, $mode);
 	}
 
 	public function write(string $string, ?int $length = null) /* int|false */

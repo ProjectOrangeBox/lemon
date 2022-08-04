@@ -35,7 +35,19 @@ class TestController extends Controller
 
 		$ini = Disc::load('/foobar/new.ini');
 
-		d($ini);
+		$dir = Disc::directory('/test');
+
+		//$dir->create();
+
+		$file = Disc::create('/test/foobar.txt');
+		$file->writeLine('This is a test');
+		$file->writeLine('This is also a test');
+
+		$dir->copy('/copy');
+
+		$dir->remove();
+
+
 
 		exit(0);
 	}
