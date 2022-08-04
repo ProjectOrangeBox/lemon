@@ -2,13 +2,20 @@
 
 declare(strict_types=1);
 
-namespace dmyers\orange;
+namespace dmyers\orange\disc;
 
 use SplFileObject;
-use dmyers\orange\exceptions\discSystemException;
+use dmyers\orange\disc\exceptions\FileException;
 
 class File extends SplFileObject
 {
+	public function __construct(string $path)
+	{
+		$path = Disc::resolve($path);
+
+		parent::__construct($path);
+	}
+
 	public function write(string $string, ?int $length = null) /* int|false */
 	{
 		$length = ($length) ?? strlen($string);
@@ -270,7 +277,7 @@ class File extends SplFileObject
 
 		if ($option) {
 			if (!in_array($option, $info)) {
-				throw new discSystemException('Unknown option ' . $option);
+				throw new FileException('Unknown option ' . $option);
 			}
 
 			$info = $info[$option];

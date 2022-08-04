@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use dmyers\orange\Disc;
 use dmyers\orange\Container;
+use dmyers\orange\disc\Disc;
 use dmyers\orange\Controller;
 
 class TestController extends Controller
@@ -22,35 +22,20 @@ class TestController extends Controller
 	{
 		Disc::root(__ROOT__);
 
-		$list = Disc::list('/');
+		Disc::save('/new.ini', [
+			'section1' => [
+				'name' => 'frank',
+				'age' => 24,
+			],
+			'section2' => [
+				'name' => 'pete',
+				'age' => 28,
+			]
+		]);
 
-		d($list);
+		$ini = Disc::load('/new.ini');
 
-		$file = Disc::create('/foobar.txt');
-
-		$file->writeLine('Hello World!');
-
-		$file = Disc::append('/foobar.txt');
-
-		$file->writeLine('Good Bye World!');
-
-		$w = $file->isWritable();
-
-		d($w);
-
-		$w = $file->isDirectory();
-
-		d($w);
-
-		$info = $file->info();
-
-		d($info);
-
-		$file = $file->rename('barfoo.txt');
-
-		d($file->info());
-
-		$file->touch();
+		d($ini);
 
 		exit(0);
 	}
