@@ -73,6 +73,9 @@ class TestController extends Controller
 
 		Disc::directory('/testing');
 
+		Disc::directory('/testing')->copy('/testing2');
+		Disc::directory('/testing2/new3')->create();
+
 		Disc::directory('/testing')->remove();
 
 		exit(0);

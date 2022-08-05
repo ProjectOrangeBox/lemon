@@ -11,19 +11,23 @@ class Directory extends SplFileInfo
 {
 	public function list(string $pattern = '*', int $flags = 0): array
 	{
-		Disc::required($this->getPathname());
+		$path = $this->getPathname();
 
-		return Disc::stripRootPath(\glob($this->getPathname() . '/' . $pattern, $flags));
+		Disc::directoryRequired($path);
+
+		return Disc::stripRootPath(\glob($path . '/' . $pattern, $flags));
 	}
 
 	public function listAll(string $pattern = '*', int $flags = 0): array
 	{
-		Disc::required($this->getPathname());
+		$path = $this->getPathname();
 
-		return Disc::stripRootPath(self::listRecursive($this->getPathname() . '/' . $pattern, $flags));
+		Disc::directoryRequired($path);
+
+		return Disc::stripRootPath(self::listRecursive($path . '/' . $pattern, $flags));
 	}
 
-	public function listRecursive(string $pattern, int $flags = 0): array
+	protected function listRecursive(string $pattern, int $flags = 0): array
 	{
 		$files = \glob($pattern, $flags);
 
@@ -44,9 +48,7 @@ class Directory extends SplFileInfo
 	{
 		$path = $this->getPathname();
 
-		if (!is_dir($path)) {
-			throw new DirectoryException('Directory Not Found');
-		}
+		Disc::directoryRequired($path);
 
 		self::removeRecursive($path, $removeDirectory);
 
@@ -74,9 +76,7 @@ class Directory extends SplFileInfo
 	{
 		$source = $this->getPathname();
 
-		if (!is_dir($source)) {
-			throw new DirectoryException('Directory Not Found');
-		}
+		Disc::directoryRequired($source);
 
 		$destination = Disc::resolve($destination);
 
@@ -104,6 +104,11 @@ class Directory extends SplFileInfo
 		}
 
 		closedir($dir);
+	}
+
+	public function rename(string $name)
+	{
+		return Disc::renameDirectory($this, $name);
 	}
 
 	public function create(int $mode = 0777, bool $recursive = true): bool

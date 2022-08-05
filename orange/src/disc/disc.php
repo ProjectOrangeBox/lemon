@@ -96,10 +96,21 @@ class Disc
 		return ($remove) ? $short : $long;
 	}
 
-	public static function required(string $path): void
+	public static function fileRequired(string $path): void
 	{
-		if (!\file_exists(self::resolve($path))) {
-			throw new discException('No such file or directory. ' . self::resolve($path, true));
+		$path = self::resolve($path);
+
+		if (!\file_exists($path) && !\is_file($path)) {
+			throw new discException('No such file. ' . self::resolve($path, true));
+		}
+	}
+
+	public static function directoryRequired(string $path): void
+	{
+		$path = self::resolve($path);
+
+		if (!\file_exists($path) && !\is_dir($path)) {
+			throw new discException('No such directory. ' . self::resolve($path, true));
 		}
 	}
 
@@ -162,7 +173,7 @@ class Disc
 		}
 
 		if (in_array($mode, ['r', 'r+'])) {
-			self::required($path);
+			self::fileRequired($path);
 		} else {
 			self::autoGenMissingDirectory($path);
 		}
@@ -274,17 +285,32 @@ class Disc
 		}
 	}
 
-	public static function rename(File $fileObj, string $newname): File
+	public static function renameFile(File $fileObj, string $newname): File
 	{
-		self::autoGenMissingDirectory($newname);
+		$newPath = self::resolve($newname);
 
-		$oldname = $fileObj->getRealPath();
+		self::autoGenMissingDirectory($newPath);
+
+		$oldPath = $fileObj->getRealPath();
 
 		$fileObj = null; /* close */
 
-		\rename($oldname, self::resolve($newname));
+		\rename($oldPath, $newPath);
 
 		return self::file($newname);
+	}
+
+	public static function renameDirectory(Directory $dirObj, string $newname): Directory
+	{
+		$oldPath = $dirObj->getRealPath();
+
+		$dirObj = null; /* close */
+
+		$newPath = self::resolve($newname);
+
+		\rename($oldPath, $newPath);
+
+		return self::directory($newPath);
 	}
 
 	/**

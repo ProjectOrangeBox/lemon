@@ -311,14 +311,14 @@ class File extends SplFileObject
 		return \touch($this->getRealPath());
 	}
 
-	public function move(string $newname): self
+	public function move(string $name): self
 	{
-		return Disc::rename($this, $newname);
+		return Disc::renameFile($this, $name);
 	}
 
-	public function rename(string $newname): self
+	public function rename(string $name): self
 	{
-		return self::move($newname);
+		return self::move($name);
 	}
 
 	public function remove(): bool
