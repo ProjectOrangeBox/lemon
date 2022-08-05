@@ -158,42 +158,21 @@ class Disc
 		$path = self::resolve($path);
 
 		if (is_file($path)) {
-			throw new discException('Trying to place a directory on the file ' . self::resolve($path, true));
+			throw new discException(self::resolve($path, true) . ' is a File.');
 		}
 
 		return new Directory($path);
 	}
 
-	public static function open(string $path, string $mode = 'r'): File
+	public static function file(string $path): File
 	{
 		$path = self::resolve($path);
 
 		if (is_dir($path)) {
-			throw new discException('Cannot Open Directory. Use directory instead.');
+			throw new discException(self::resolve($path, true) . ' is a Directory.');
 		}
 
-		if (in_array($mode, ['r', 'r+'])) {
-			self::fileRequired($path);
-		} else {
-			self::autoGenMissingDirectory($path);
-		}
-
-		return new File($path, $mode);
-	}
-
-	public static function append(string $path, string $mode = 'a'): File
-	{
-		return self::open($path, $mode);
-	}
-
-	public static function create(string $path, string $mode = 'w'): File
-	{
-		return self::open($path, $mode);
-	}
-
-	public static function file(string $path): File
-	{
-		return self::open($path, 'r');
+		return new File($path);
 	}
 
 	public static function formatSize(int $bytes): string

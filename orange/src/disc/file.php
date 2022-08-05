@@ -4,18 +4,59 @@ declare(strict_types=1);
 
 namespace dmyers\orange\disc;
 
+use SplFileInfo;
 use SplFileObject;
 use dmyers\orange\disc\exceptions\FileException;
 
-class File extends SplFileObject
+class File extends SplFileInfo
 {
 	const JSONFLAGS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
 
+	protected $fileObject = null;
+
+	public function open(string $mode = 'r'): self
+	{
+		$path = Disc::resolve($this->getPathname());
+
+		if (is_dir($path)) {
+			throw new FileException(Disc::resolve($this->getPathname(), true) . ' is a Directory');
+		}
+
+		if (in_array($mode, ['r', 'r+'])) {
+			Disc::fileRequired($path);
+		} else {
+			Disc::autoGenMissingDirectory($path);
+		}
+
+		$this->fileObject = new SplFileObject($path, $mode);
+
+		return $this;
+	}
+
+	public function create(string $mode = 'w'): self
+	{
+		return $this->open($mode);
+	}
+
+	public function append(string $mode = 'a'): self
+	{
+		return $this->open($mode);
+	}
+
+	public function close(): self
+	{
+		$this->fileObject = null;
+
+		return $this;
+	}
+
 	public function write(string $string, ?int $length = null) /* int|false */
 	{
+		$this->requireOpenFile();
+
 		$length = ($length) ?? strlen($string);
 
-		return $this->fwrite($string, $length);
+		return $this->fileObject->fwrite($string, $length);
 	}
 
 	public function writeLine(string $string, string $lineEnding = null)
@@ -27,42 +68,58 @@ class File extends SplFileObject
 
 	public function character() /* string|false */
 	{
-		return $this->fgetc();
+		$this->requireOpenFile();
+
+		return $this->fileObject->fgetc();
 	}
 
 	public function characters(int $length) /* string|false */
 	{
-		return $this->fread($length);
+		$this->requireOpenFile();
+
+		return $this->fileObject->fread($length);
 	}
 
 	public function line(): string
 	{
-		return $this->fgets();
+		$this->requireOpenFile();
+
+		return $this->fileObject->fgets();
 	}
 
 	public function readCsvRow(string $separator = ",", string $enclosure = '"', string $escape = "\\"): array
 	{
-		return $this->fgetcsv($separator, $enclosure, $escape);
+		$this->requireOpenFile();
+
+		return $this->fileObject->fgetcsv($separator, $enclosure, $escape);
 	}
 
 	public function writeCsvRow(array $fields, string $separator = ",", string $enclosure = "\"", string $escape = "\\", string $eol = "\n")
 	{
-		return $this->fputcsv($fields, $separator, $enclosure, $escape, $eol);
+		$this->requireOpenFile();
+
+		return $this->fileObject->fputcsv($fields, $separator, $enclosure, $escape, $eol);
 	}
 
 	public function lock(int $operation, int &$wouldBlock = null): bool
 	{
-		return $this->flock($operation, $wouldBlock);
+		$this->requireOpenFile();
+
+		return $this->fileObject->flock($operation, $wouldBlock);
 	}
 
 	public function position(int $position = null): int
 	{
-		return ($position) ? $this->fseek($this->handle, $position) : $this->ftell($this->handle);
+		$this->requireOpenFile();
+
+		return ($position) ? $this->fileObject->fseek($this->handle, $position) : $this->fileObject->ftell($this->handle);
 	}
 
 	public function flush(): bool
 	{
-		return $this->fflush();
+		$this->requireOpenFile();
+
+		return $this->fileObject->fflush();
 	}
 
 	public function isDirectory(): bool
@@ -526,5 +583,12 @@ class File extends SplFileObject
 	public function content(): string
 	{
 		return \file_get_contents($this->getPathname());
+	}
+
+	protected function requireOpenFile()
+	{
+		if (!$this->fileObject) {
+			throw new FileException('no file open');
+		}
 	}
 } /* end class */
