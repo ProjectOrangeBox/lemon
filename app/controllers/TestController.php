@@ -22,7 +22,26 @@ class TestController extends Controller
 	{
 		Disc::root(__ROOT__);
 
-		Disc::save('/foobar/new.ini', [
+		$obj = new \StdClass;
+
+		$obj->name = "Don Myers";
+		$obj->age = 21;
+
+		$pet1 = new \StdClass;
+		$pet1->name = "Balley";
+		$pet1->age = 4;
+		$pet1->type = 'dog';
+
+		$pet2 = new \StdClass;
+		$pet2->name = "Manchester";
+		$pet2->age = 2;
+		$pet2->type = 'dog';
+
+		$obj->pets = [$pet1, $pet2];
+
+		$f = Disc::create('/testing/new.ini');
+
+		$f->export([
 			'section1' => [
 				'name' => 'frank',
 				'age' => 24,
@@ -33,21 +52,22 @@ class TestController extends Controller
 			]
 		]);
 
-		$ini = Disc::load('/foobar/new.ini');
+		//$ini = Disc::open('/testing/new.ini')->load();
+		$ini = $f->import();
 
-		$dir = Disc::directory('/test');
+		d($ini);
 
-		//$dir->create();
+		Disc::create('/testing/new.php')->export($obj);
 
-		$file = Disc::create('/test/foobar.txt');
-		$file->writeLine('This is a test');
-		$file->writeLine('This is also a test');
+		$php = Disc::open('/testing/new.php')->import();
 
-		$dir->copy('/copy');
+		d($php);
 
-		$dir->remove();
+		Disc::create('/testing/new.json')->export($obj, true);
 
+		Disc::create('/testing/new.txt')->export('This is a test');
 
+		Disc::directory('/testing')->remove();
 
 		exit(0);
 	}

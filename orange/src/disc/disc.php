@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace dmyers\orange\disc;
 
 use dmyers\orange\disc\File;
-use dmyers\orange\disc\Load;
-use dmyers\orange\disc\Save;
 use dmyers\orange\disc\Directory;
 use dmyers\orange\disc\exceptions\DiscException;
 
@@ -213,9 +211,11 @@ class Disc
 		return new Directory(self::resolve($path));
 	}
 
-	public static function open(string $path, string $mode = 'r') /* resource|false */
+	public static function open(string $path, string $mode = 'r'): File
 	{
-		if (is_dir(self::resolve($path))) {
+		$path = Disc::resolve($path);
+
+		if (is_dir($path)) {
 			throw new discException('Cannot Open Directory');
 		}
 
@@ -225,20 +225,20 @@ class Disc
 			self::autoGenMissingDirectory($path);
 		}
 
-		return new File(self::resolve($path), $mode);
+		return new File($path, $mode);
 	}
 
-	public static function append(string $path, string $mode = 'a')  /* resource|false */
+	public static function append(string $path, string $mode = 'a'): File
 	{
 		return self::open($path, $mode);
 	}
 
-	public static function create(string $path, string $mode = 'w') /* resource|false */
+	public static function create(string $path, string $mode = 'w'): File
 	{
 		return self::open($path, $mode);
 	}
 
-	public static function file(string $path)
+	public static function file(string $path): File
 	{
 		return self::open($path, 'r');
 	}
@@ -358,18 +358,6 @@ class Disc
 		\rename($oldname, self::resolve($newname));
 
 		return self::file($newname);
-	}
-
-	public static function save(string $path, $input = null, ?int $chmod = null, $arg1 = null): Save
-	{
-		return new Save($path, $input, $chmod, $arg1);
-	}
-
-	public static function load(string $path, bool $processFile = true, $arg1 = null, $arg2 = null) /* mixed */
-	{
-		$loader = new Load($path, $processFile, $arg1, $arg2);
-
-		return (!$processFile) ? $loader : $loader->loaded();
 	}
 
 	/**

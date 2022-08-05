@@ -9,13 +9,6 @@ use dmyers\orange\disc\exceptions\DirectoryException;
 
 class Directory extends SplFileInfo
 {
-	public function __construct(string $path)
-	{
-		$path = Disc::resolve($path);
-
-		parent::__construct($path);
-	}
-
 	public function list(string $pattern = '*', int $flags = 0): array
 	{
 		Disc::required($this->getPathname());
