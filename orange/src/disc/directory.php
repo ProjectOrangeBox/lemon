@@ -23,7 +23,7 @@ class Directory extends SplFileInfo
 		return Disc::stripRootPath(self::listRecursive($this->getPathname() . '/' . $pattern, $flags));
 	}
 
-	public function remove(): bool
+	public function remove(bool $removeDirectory = true): bool
 	{
 		$path = $this->getPathname();
 
@@ -31,17 +31,26 @@ class Directory extends SplFileInfo
 			throw new DirectoryException('Directory Not Found');
 		}
 
+		self::recursiveRemove($path);
+
+		if ($removeDirectory) {
+			\rmdir($path);
+		}
+
+		return true; /* ?? */
+	}
+
+	protected function recursiveRemove(string $path)
+	{
 		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
 
 		foreach ($files as $fileinfo) {
 			if ($fileinfo->isDir()) {
-				self::remove($fileinfo->getRealPath());
+				self::recursiveRemove($fileinfo->getRealPath());
 			} else {
 				\unlink($fileinfo->getRealPath());
 			}
 		}
-
-		return \rmdir($path);
 	}
 
 	public function copy(string $destination): bool

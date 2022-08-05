@@ -67,6 +67,12 @@ class TestController extends Controller
 
 		Disc::create('/testing/new.txt')->export('This is a test');
 
+
+		Disc::directory('/testing/new')->create();
+		Disc::directory('/testing/new2')->create();
+
+		Disc::directory('/testing');
+
 		Disc::directory('/testing')->remove();
 
 		exit(0);
