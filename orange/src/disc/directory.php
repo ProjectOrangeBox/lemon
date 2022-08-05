@@ -23,6 +23,23 @@ class Directory extends SplFileInfo
 		return Disc::stripRootPath(self::listRecursive($this->getPathname() . '/' . $pattern, $flags));
 	}
 
+	public function listRecursive(string $pattern, int $flags = 0): array
+	{
+		$files = \glob($pattern, $flags);
+
+		foreach (\glob(\dirname($pattern) . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR | GLOB_NOSORT) as $directory) {
+			/* recursive loop */
+			$files = \array_merge($files, self::listRecursive($directory . DIRECTORY_SEPARATOR . \basename($pattern), $flags));
+		}
+
+		return $files;
+	}
+
+	public function removeContents(): bool
+	{
+		return $this->remove(false);
+	}
+
 	public function remove(bool $removeDirectory = true): bool
 	{
 		$path = $this->getPathname();
@@ -31,25 +48,25 @@ class Directory extends SplFileInfo
 			throw new DirectoryException('Directory Not Found');
 		}
 
-		self::recursiveRemove($path);
-
-		if ($removeDirectory) {
-			\rmdir($path);
-		}
+		self::removeRecursive($path, $removeDirectory);
 
 		return true; /* ?? */
 	}
 
-	protected function recursiveRemove(string $path)
+	protected function removeRecursive(string $path, bool $removeDirectory = true)
 	{
 		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
 
 		foreach ($files as $fileinfo) {
 			if ($fileinfo->isDir()) {
-				self::recursiveRemove($fileinfo->getRealPath());
+				self::removeRecursive($fileinfo->getRealPath());
 			} else {
 				\unlink($fileinfo->getRealPath());
 			}
+		}
+
+		if ($removeDirectory) {
+			\rmdir($path);
 		}
 	}
 
@@ -63,31 +80,39 @@ class Directory extends SplFileInfo
 
 		$destination = Disc::resolve($destination);
 
-		$dir = \opendir($source);
-
-		if (!is_dir($destination)) {
-			mkdir($destination);
-		}
-
-		while (false !== ($file = \readdir($dir))) {
-			if (($file != '.') && ($file != '..')) {
-				if (\is_dir($source . '/' . $file)) {
-					self::copy($source . '/' . $file, $destination . '/' . $file);
-				} else {
-					\copy($source . '/' . $file, $destination . '/' . $file);
-				}
-			}
-		}
-
-		\closedir($dir);
+		$this->copyRecursive($source, $destination);
 
 		return true;
 	}
 
+	protected function copyRecursive(string $source, string $destination): void
+	{
+		$dir = opendir($source);
+
+		if (!is_dir($destination)) {
+			$this->mkdir($destination, 0777, true);
+		}
+
+		while (($file = readdir($dir))) {
+			if (($file != '.') && ($file != '..')) {
+				if (is_dir($source . '/' . $file)) {
+					$this->copyRecursive($source . '/' . $file, $destination . '/' . $file);
+				} else {
+					copy($source . '/' . $file, $destination . '/' . $file);
+				}
+			}
+		}
+
+		closedir($dir);
+	}
+
 	public function create(int $mode = 0777, bool $recursive = true): bool
 	{
-		$path = $this->getPathname();
+		return $this->mkdir($this->getPathname(), $mode, $recursive);
+	}
 
+	protected function mkdir(string $path, int $mode = 0777, bool $recursive = true): bool
+	{
 		if (!\file_exists($path)) {
 			$umask = \umask(0);
 			$bool = \mkdir($path, $mode, $recursive);
@@ -97,17 +122,5 @@ class Directory extends SplFileInfo
 		}
 
 		return $bool;
-	}
-
-	public function listRecursive(string $pattern, int $flags = 0): array
-	{
-		$files = \glob($pattern, $flags);
-
-		foreach (\glob(\dirname($pattern) . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR | GLOB_NOSORT) as $directory) {
-			/* recursive loop */
-			$files = \array_merge($files, self::listRecursive($directory . DIRECTORY_SEPARATOR . \basename($pattern), $flags));
-		}
-
-		return $files;
 	}
 } /* end class */
