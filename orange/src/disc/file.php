@@ -14,6 +14,32 @@ class File extends SplFileInfo
 
 	protected $fileObject = null;
 
+	/**
+	 * Method __call
+	 *
+	 * @param $name $name [explicite description]
+	 * @param $arguments $arguments [explicite description]
+	 *
+	 * @return void
+	 */
+	public function __call($name, $arguments)
+	{
+		$this->requireOpenFile(); /* throws error on fail */
+
+		if (method_exists($this->fileObject, $name)) {
+			return $this->fileObject->$name(...$arguments);
+		}
+
+		trigger_error(sprintf('Call to undefined function: %s::%s().', get_class($this), $name), E_USER_ERROR);
+	}
+
+	/**
+	 * Method open
+	 *
+	 * @param string $mode [explicite description]
+	 *
+	 * @return self
+	 */
 	public function open(string $mode = 'r'): self
 	{
 		$path = Disc::resolve($this->getPathname());
@@ -28,105 +54,223 @@ class File extends SplFileInfo
 			Disc::autoGenMissingDirectory($path);
 		}
 
+		/* close properly */
+		if ($this->fileObject) {
+			$this->fileObject = null;
+		}
+
 		$this->fileObject = new SplFileObject($path, $mode);
 
 		return $this;
 	}
 
+	/**
+	 * Method create
+	 *
+	 * @param string $mode [explicite description]
+	 *
+	 * @return self
+	 */
 	public function create(string $mode = 'w'): self
 	{
 		return $this->open($mode);
 	}
 
+	/**
+	 * Method append
+	 *
+	 * @param string $mode [explicite description]
+	 *
+	 * @return self
+	 */
 	public function append(string $mode = 'a'): self
 	{
 		return $this->open($mode);
 	}
 
+	/**
+	 * Method close
+	 *
+	 * @return self
+	 */
 	public function close(): self
 	{
+		$this->requireOpenFile(); /* throws error on fail */
+
 		$this->fileObject = null;
 
 		return $this;
 	}
 
+	/**
+	 * Method write
+	 * 
+	 * Write to file
+	 *
+	 * @param string $string [explicite description]
+	 * @param ?int $length [explicite description]
+	 *
+	 * @return void
+	 */
 	public function write(string $string, ?int $length = null) /* int|false */
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
-		$length = ($length) ?? strlen($string);
-
-		return $this->fileObject->fwrite($string, $length);
+		return ($length) ? $this->fileObject->fwrite($string, $length) : $this->fileObject->fwrite($string);
 	}
 
+	/**
+	 * Method writeLine
+	 * 
+	 * Write to file with line feed
+	 *
+	 * @param string $string [explicite description]
+	 * @param string $lineEnding [explicite description]
+	 *
+	 * @return void
+	 */
 	public function writeLine(string $string, string $lineEnding = null)
 	{
-		$lineEnding = ($lineEnding) ?? chr(10);
+		$lineEnding = ($lineEnding) ?? PHP_EOL;
 
 		return $this->write($string . $lineEnding);
 	}
 
+	/**
+	 * Method character
+	 * 
+	 * Read single character from file
+	 *
+	 * @return void
+	 */
 	public function character() /* string|false */
 	{
-		$this->requireOpenFile();
-
-		return $this->fileObject->fgetc();
+		return $this->characters(1);
 	}
 
+	/**
+	 * Method characters
+	 * 
+	 * Read 1 or more characters from file
+	 *
+	 * @param int $length [explicite description]
+	 *
+	 * @return void
+	 */
 	public function characters(int $length) /* string|false */
 	{
-		$this->requireOpenFile();
-
 		return $this->fileObject->fread($length);
 	}
 
+	/**
+	 * Method line
+	 * 
+	 * Read line from file
+	 * auto detecting line ending
+	 *
+	 * @return string
+	 */
 	public function line(): string
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
 		return $this->fileObject->fgets();
 	}
 
+	/**
+	 * Method readCsvRow
+	 *
+	 * @param string $separator [explicite description]
+	 * @param " $enclosure [explicite description]
+	 * @param string $escape [explicite description]
+	 *
+	 * @return array
+	 */
 	public function readCsvRow(string $separator = ",", string $enclosure = '"', string $escape = "\\"): array
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
 		return $this->fileObject->fgetcsv($separator, $enclosure, $escape);
 	}
 
+	/**
+	 * Method writeCsvRow
+	 *
+	 * @param array $fields [explicite description]
+	 * @param string $separator [explicite description]
+	 * @param " $enclosure [explicite description]
+	 * @param string $escape [explicite description]
+	 * @param string $eol [explicite description]
+	 *
+	 * @return void
+	 */
 	public function writeCsvRow(array $fields, string $separator = ",", string $enclosure = "\"", string $escape = "\\", string $eol = "\n")
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
 		return $this->fileObject->fputcsv($fields, $separator, $enclosure, $escape, $eol);
 	}
 
+	/**
+	 * Method lock
+	 * 
+	 * Lock file
+	 *
+	 * @param int $operation [explicite description]
+	 * @param int $wouldBlock [explicite description]
+	 *
+	 * @return bool
+	 */
 	public function lock(int $operation, int &$wouldBlock = null): bool
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
 		return $this->fileObject->flock($operation, $wouldBlock);
 	}
 
+	/**
+	 * Method position
+	 *
+	 * @param int $position [explicite description]
+	 *
+	 * @return int
+	 */
 	public function position(int $position = null): int
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
 		return ($position) ? $this->fileObject->fseek($this->handle, $position) : $this->fileObject->ftell($this->handle);
 	}
 
+	/**
+	 * Method flush
+	 *
+	 * @return bool
+	 */
 	public function flush(): bool
 	{
-		$this->requireOpenFile();
+		$this->requireOpenFile(); /* throws error on fail */
 
 		return $this->fileObject->fflush();
 	}
 
+	/**
+	 * Method isDirectory
+	 *
+	 * @return bool
+	 */
 	public function isDirectory(): bool
 	{
 		return $this->isDir();
 	}
 
+	/**
+	 * Method filename
+	 *
+	 * @param string $suffix [explicite description]
+	 *
+	 * @return string
+	 */
 	public function filename(string $suffix = null): string
 	{
 		return ($suffix) ? $this->getBasename($suffix) : $this->getFilename();
@@ -519,6 +663,15 @@ class File extends SplFileInfo
 		return $bytes;
 	}
 
+	/**
+	 * Method import
+	 *
+	 * @param $arg1 $arg1 [explicite description]
+	 * @param $arg2 $arg2 [explicite description]
+	 * @param $arg3 $arg3 [explicite description]
+	 *
+	 * @return void
+	 */
 	public function import($arg1 = null, $arg2 = null, $arg3 = null)
 	{
 		switch ($this->getExtension()) {
@@ -538,6 +691,11 @@ class File extends SplFileInfo
 		return $contents;
 	}
 
+	/**
+	 * Method importPhp
+	 *
+	 * @return void
+	 */
 	public function importPhp()
 	{
 		$path = $this->getPathname();
@@ -545,6 +703,15 @@ class File extends SplFileInfo
 		return include $path;
 	}
 
+	/**
+	 * Method importJson
+	 *
+	 * @param bool $associative [explicite description]
+	 * @param int $depth [explicite description]
+	 * @param int $flags [explicite description]
+	 *
+	 * @return void
+	 */
 	public function importJson(bool $associative = false, int $depth = 512, int $flags = 0)
 	{
 		$path = $this->getPathname();
@@ -562,6 +729,14 @@ class File extends SplFileInfo
 		return $json;
 	}
 
+	/**
+	 * Method importIni
+	 *
+	 * @param bool $processSections [explicite description]
+	 * @param int $scannerMode [explicite description]
+	 *
+	 * @return void
+	 */
 	public function importIni(bool $processSections = null, int $scannerMode = null)
 	{
 		$path = $this->getPathname();
@@ -580,11 +755,21 @@ class File extends SplFileInfo
 		return $ini;
 	}
 
+	/**
+	 * Method content
+	 *
+	 * @return string
+	 */
 	public function content(): string
 	{
 		return \file_get_contents($this->getPathname());
 	}
 
+	/**
+	 * Method requireOpenFile
+	 *
+	 * @return void
+	 */
 	protected function requireOpenFile()
 	{
 		if (!$this->fileObject) {
