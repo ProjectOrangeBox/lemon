@@ -60,7 +60,7 @@ class TestController extends Controller
 
 		$ini = disc::file('/testing/test.ini')->import->ini();
 
-		d($ini);
+		//d($ini);
 
 		disc::file('/testing/test.csv')->export->csv($csv);
 
@@ -73,13 +73,40 @@ class TestController extends Controller
 
 		disc::file('/testing/newfile.txt')->append()->writeLine('second line');
 
-		d($file->info());
-		d($file);
+		//d($file->info());
+		//d($file);
 
 		$content = disc::file('/testing/newfile.txt')->import->content();
 
-		d($content);
+		//d($content);
 
+		$dir = disc::directory('/testing');
+
+		d(disc::directory('/testing')->permissions(3));
+		d(disc::file('/testing/newfile.txt')->permissions(3));
+
+		disc::directory('/dummy')->remove();
+		disc::directory('/foo')->remove();
+		disc::directory('/bar')->remove();
+		disc::directory('/testing/foo')->remove();
+
+		$dirCopy = $dir->copy('/dummy');
+
+		d($dirCopy);
+
+		$dirCopy->rename('bar');
+
+		d($dirCopy);
+
+		$dirCopy->rename('foo');
+
+		d($dirCopy);
+
+		$dirCopy->move('/testing/foo');
+
+		d($dirCopy);
+
+		disc::directory('/testing/foo')->remove();
 
 		exit(0);
 	}
