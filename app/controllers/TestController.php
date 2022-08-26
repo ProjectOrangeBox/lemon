@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
+use dmyers\disc\disc;
 use dmyers\orange\Container;
-use dmyers\orange\disc\Disc;
 use dmyers\orange\Controller;
 
 class TestController extends Controller
@@ -20,7 +20,7 @@ class TestController extends Controller
 
 	public function disc()
 	{
-		Disc::root(__ROOT__);
+		disc::root(__ROOT__);
 
 		$obj = new \StdClass;
 
@@ -39,9 +39,7 @@ class TestController extends Controller
 
 		$obj->pets = [$pet1, $pet2];
 
-		$f = Disc::create('/testing/new.ini');
-
-		$f->export([
+		$array = [
 			'section1' => [
 				'name' => 'frank',
 				'age' => 24,
@@ -50,33 +48,38 @@ class TestController extends Controller
 				'name' => 'pete',
 				'age' => 28,
 			]
-		]);
+		];
 
-		//$ini = Disc::open('/testing/new.ini')->load();
-		$ini = $f->import();
+		$csv = array(
+			array('name' => 'Don Stein', 'age' => '23',),
+			array('name' => 'John Doe', 'age' => '21',),
+			array('name' => 'Jen White', 'age' => '27',)
+		);
+
+		disc::file('/testing/test.ini')->export->ini($array);
+
+		$ini = disc::file('/testing/test.ini')->import->ini();
 
 		d($ini);
 
-		Disc::create('/testing/new.php')->export($obj);
+		disc::file('/testing/test.csv')->export->csv($csv);
 
-		$php = Disc::open('/testing/new.php')->import();
+		$csv2 = disc::file('/testing/test.csv')->import->csv();
 
-		d($php);
+		$file = disc::file('/testing/newfile.txt')->create();
+		$file->writeLine('Hello World');
+		$file->write('Hello World on ' . date('M-d-Y'));
+		$file->changePermissions(0777);
 
-		Disc::create('/testing/new.json')->export($obj, true);
+		disc::file('/testing/newfile.txt')->append()->writeLine('second line');
 
-		Disc::create('/testing/new.txt')->export('This is a test');
+		d($file->info());
+		d($file);
 
+		$content = disc::file('/testing/newfile.txt')->import->content();
 
-		Disc::directory('/testing/new')->create();
-		Disc::directory('/testing/new2')->create();
+		d($content);
 
-		Disc::directory('/testing');
-
-		Disc::directory('/testing')->copy('/testing2');
-		Disc::directory('/testing2/new3')->create();
-
-		Disc::directory('/testing')->remove();
 
 		exit(0);
 	}

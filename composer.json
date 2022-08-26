@@ -2,11 +2,12 @@
     "name": "dmyers/orange",
     "autoload": {
         "psr-4": {
-            "dmyers\\orange\\": "orange/src/",
+            "dmyers\\orange\\": "local/orange/src/",
+            "dmyers\\disc\\": "local/disc/src/",
             "app\\": "app/"
         },
         "files": [
-            "orange/src/Orange.php",
+            "local/orange/src/Orange.php",
             "vendor/larapack/dd/src/helper.php"
         ]
     },
