@@ -27,21 +27,7 @@ if (!function_exists('run')) {
 			require_once __ROOT__ . '/app/Bootstrap.php';
 		}
 
-		if (!isset($config['services'])) {
-			throw new InvalidConfigurationValue('services');
-		}
-
-		if (!file_exists($config['services'])) {
-			throw new ConfigFileNotFound($config['services']);
-		}
-
-		$serviceArray = require_once $config['services'];
-
-		if (!is_array($serviceArray)) {
-			throw new InvalidConfigurationValue('Not an array of services');
-		}
-
-		$container = new Container($serviceArray);
+		$container = makeContainer($config['services'] ?? '');
 
 		$container->{'$config'} = $config;
 
@@ -69,21 +55,28 @@ if (!function_exists('cli')) {
 			require_once __ROOT__ . '/cli/Bootstrap.php';
 		}
 
+		$container = makeContainer($config['services'] ?? '');
+
+		$container->{'$config'} = $config;
+
+		return $container;
+	}
+}
+
+if (!function_exists('makeContainer')) {
+	function makeContainer(string $servicesFile = null): Container
+	{
 		$serviceArray = [];
 
-		if (isset($config['services']) && file_exists($config['services'])) {
-			$serviceArray = require_once $config['services'];
+		if (isset($servicesFile) && file_exists($servicesFile)) {
+			$serviceArray = require_once $servicesFile;
 
 			if (!is_array($serviceArray)) {
 				throw new InvalidConfigurationValue('Not an array of services');
 			}
 		}
 
-		$container = new Container($serviceArray);
-
-		$container->{'$config'} = $config;
-
-		return $container;
+		return new Container($serviceArray);
 	}
 }
 
