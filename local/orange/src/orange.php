@@ -61,6 +61,39 @@ if (!function_exists('run')) {
 	}
 }
 
+if (!function_exists('cli')) {
+	function cli(array $config = [], string $function = 'main')
+	{
+		define('DEBUG', env('DEBUG', false));
+		define('ENVIRONMENT', env('ENVIRONMENT', 'production'));
+
+		/* user custom loader */
+		if (file_exists(__ROOT__ . '/cli/Bootstrap.php')) {
+			require_once __ROOT__ . '/cli/Bootstrap.php';
+		}
+
+		$serviceArray = [];
+
+		if (isset($config['services']) && file_exists($config['services'])) {
+			$serviceArray = require_once $config['services'];
+
+			if (!is_array($serviceArray)) {
+				throw new InvalidConfigurationValue('Not an array of services');
+			}
+		}
+
+		$container = new Container($serviceArray);
+
+		$container->{'$config'} = $config;
+
+		if (!function_exists($function)) {
+			throw new InvalidConfigurationValue($function . ' function not found.');
+		}
+
+		$function($container);
+	}
+}
+
 if (!function_exists('exceptionHandler')) {
 	/**
 	 * Method exceptionHandler
