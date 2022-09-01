@@ -64,9 +64,6 @@ if (!function_exists('run')) {
 if (!function_exists('cli')) {
 	function cli(array $config = [])
 	{
-		define('DEBUG', env('DEBUG', false));
-		define('ENVIRONMENT', env('ENVIRONMENT', 'production'));
-
 		/* user custom loader */
 		if (file_exists(__ROOT__ . '/cli/Bootstrap.php')) {
 			require_once __ROOT__ . '/cli/Bootstrap.php';
