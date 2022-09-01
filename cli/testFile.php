@@ -2,45 +2,40 @@
 
 declare(strict_types=1);
 
-use dmyers\disc\disc;
-
 define('__ROOT__', realpath(__DIR__ . '/../'));
 
-require __DIR__ . '/../vendor/autoload.php';
+require __ROOT__ . '/vendor/autoload.php';
 
-cli();
+$container = cli();
 
-function main($container)
-{
-	disc::root(realpath(__DIR__ . '/support'));
+use dmyers\disc\disc;
 
-	$file = disc::file('/test.txt')->create();
+disc::root(__ROOT__ . '/var/support');
 
-	d('before ' . $file->size());
+$file = disc::file('/test.txt')->create();
 
-	$file->writeLine('This is a test');
-	$file->close();
+d('before ' . $file->size());
 
-	d('after ' . $file->size());
-	d('after ' . filesize(__DIR__ . '/support/test.txt'));
+$file->writeLine('This is a test');
+$file->close();
 
-	$file = disc::file('/test.txt')->open();
+d('after ' . $file->size());
 
+$file = disc::file('/test.txt')->open();
 
-	$chars = $file->characters(1);
+$chars = $file->characters(1);
 
-	d($chars);
+d($chars);
 
-	//$contents = $file->contents();
+//$contents = $file->contents();
 
-	//d($contents);
+//d($contents);
 
-	echo $file->size() . chr(10);
+echo $file->size() . chr(10);
 
-	d($file->asArray());
+d($file->asArray());
 
-	d($file->directory());
+d($file->directory());
 
-	disc::file('/test.txt')->remove();
-	disc::directory('/')->removeContents();
-}
+disc::file('/test.txt')->remove();
+disc::directory('/')->removeContents();

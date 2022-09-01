@@ -62,7 +62,7 @@ if (!function_exists('run')) {
 }
 
 if (!function_exists('cli')) {
-	function cli(array $config = [], string $function = 'main')
+	function cli(array $config = [])
 	{
 		define('DEBUG', env('DEBUG', false));
 		define('ENVIRONMENT', env('ENVIRONMENT', 'production'));
@@ -86,11 +86,7 @@ if (!function_exists('cli')) {
 
 		$container->{'$config'} = $config;
 
-		if (!function_exists($function)) {
-			throw new InvalidConfigurationValue($function . ' function not found.');
-		}
-
-		$function($container);
+		return $container;
 	}
 }
 
