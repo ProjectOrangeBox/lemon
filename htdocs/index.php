@@ -7,4 +7,4 @@ define('__ROOT__', realpath(__DIR__ . '/../'));
 require __ROOT__ . '/vendor/autoload.php';
 
 /* send config into application */
-run(require __ROOT__ . '/app/config/config.php');
+http(require __ROOT__ . '/app/config/config.php');

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 use dmyers\orange\Container;
 use dmyers\orange\exceptions\ConfigNotFound;
-use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 define('NOVALUE', '__#NOVALUE#__');
 
-if (!function_exists('run')) {
+if (!function_exists('http')) {
 	/**
 	 * Method run
 	 *
@@ -17,7 +16,7 @@ if (!function_exists('run')) {
 	 *
 	 * @return void
 	 */
-	function run(array $config)
+	function http(array $config = []): Container
 	{
 		define('DEBUG', env('DEBUG', false));
 		define('ENVIRONMENT', env('ENVIRONMENT', 'production'));
@@ -44,12 +43,17 @@ if (!function_exists('run')) {
 		$container->output->appendOutput($output)->send();
 
 		$container->events->trigger('after.output', $container);
+
+		return $container;
 	}
 }
 
 if (!function_exists('cli')) {
-	function cli(array $config = [])
+	function cli(array $config = []): Container
 	{
+		define('DEBUG', env('DEBUG', true));
+		define('ENVIRONMENT', env('ENVIRONMENT', 'testing'));
+
 		/* user custom loader */
 		if (file_exists(__ROOT__ . '/cli/Bootstrap.php')) {
 			require_once __ROOT__ . '/cli/Bootstrap.php';
