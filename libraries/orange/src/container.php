@@ -36,6 +36,7 @@ class Container
 	 *
 	 * $foo = $container->{'$var'};
 	 * $foo = $container->logger;
+	 * $foo = $container->{'logger[]'}; - generate a new instance reguardless
 	 *
 	 * @param string $serviceName Service Name
 	 *
@@ -43,6 +44,13 @@ class Container
 	 */
 	public function __get(string $serviceName)
 	{
+		if (substr($serviceName, -2) == '[]') {
+			$serviceName = substr($serviceName, 0, -2);
+			$factory = true;
+		} else {
+			$factory = false;
+		}
+
 		/* Is this service even registered? */
 		if (!$this->__isset($serviceName)) {
 			/* fatal */
@@ -52,7 +60,7 @@ class Container
 		$serviceName = strtolower($serviceName);
 
 		/* Is this a singleton or factory? */
-		return (self::$registeredServices[$serviceName]['singleton']) ? $this->singleton($serviceName) : $this->factory($serviceName);
+		return (self::$registeredServices[$serviceName]['singleton'] && !$factory) ? $this->singleton($serviceName) : $this->factory($serviceName);
 	}
 
 	/**
@@ -70,11 +78,11 @@ class Container
 	 */
 	public function __set(string $serviceName, $option): void
 	{
-		$singleton = true;
-
 		if (substr($serviceName, -2) == '[]') {
 			$serviceName = substr($serviceName, 0, -2);
 			$singleton = false;
+		} else {
+			$singleton = true;
 		}
 
 		if ($option instanceof \Closure) {
