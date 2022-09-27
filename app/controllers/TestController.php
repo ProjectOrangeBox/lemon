@@ -82,8 +82,8 @@ class TestController extends Controller
 
 		$dir = disc::directory('/testing');
 
-		d(disc::directory('/testing')->permissions(3));
-		d(disc::file('/testing/newfile.txt')->permissions(3));
+		d('directory permissions ' . disc::directory('/testing')->permissions(disc::ALL));
+		d('file permissions ' . disc::file('/testing/newfile.txt')->permissions(disc::PERMISSION));
 
 		disc::directory('/dummy')->remove();
 		disc::directory('/foo')->remove();

@@ -136,25 +136,25 @@ class Output
 		echo $this->sendResponseCode()->sendHeaders()->getOutput();
 	}
 
-	public function view($_mvc_view_name, $_mvc_view_data = []): string
+	public function view($viewNameInternal, $viewDataInternal = []): string
 	{
 		/* what file are we looking for? */
-		$_mvc_view_file = rtrim($this->config['views'], '/') . '/' . $_mvc_view_name . '.php';
+		$viewFileInternal = rtrim($this->config['views'], '/') . '/' . $viewNameInternal . '.php';
 
 		/* is it there? if not return nothing */
-		if (!file_exists($_mvc_view_file)) {
+		if (!file_exists($viewFileInternal)) {
 			/* file not found so bail */
-			throw new ViewNotFound($_mvc_view_name);
+			throw new ViewNotFound($viewNameInternal);
 		}
 
 		/* extract out view data and make it in scope */
-		extract($_mvc_view_data, EXTR_OVERWRITE);
+		extract($viewDataInternal, EXTR_OVERWRITE);
 
 		/* start output cache */
 		ob_start();
 
 		/* load in view (which now has access to the in scope view data */
-		require $_mvc_view_file;
+		require $viewFileInternal;
 
 		/* capture cache and return */
 		return ob_get_clean();

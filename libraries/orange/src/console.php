@@ -46,7 +46,7 @@ class Console
 		'hidden' => '8',
 	];
 
-	static $LF = "\n";
+	static $lf = "\n";
 	static $errorColor = 'red';
 	static $errorChar = '�';
 
@@ -66,9 +66,9 @@ class Console
 			$string = str_replace($tag, "\033[" . $combined[$match[1]] . "m", $string);
 		}
 
-		$LF = ($linefeed) ? self::$LF : '';
+		$lf = ($linefeed) ? self::$lf : '';
 
-		echo 	$string . "\033[0m" . $LF;
+		echo 	$string . "\033[0m" . $lf;
 	}
 
 	public static function error(string $string, bool $linefeed = true): void
@@ -92,6 +92,6 @@ class Console
 	{
 		$times = ($length) ?? exec('tput cols');
 
-		echo str_repeat($char, $times) . self::$LF;
+		echo str_repeat($char, $times) . self::$lf;
 	}
 } /* end class */

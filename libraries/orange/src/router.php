@@ -15,19 +15,19 @@ class Router
 
 	protected $routes = null;
 	protected $input = null;
-	protected $responds = [];
+	protected $route = [];
 
 	public function __construct(array $routes)
 	{
 		$this->routes = $routes;
 	}
 
-	public function responds(string $match = null) /* mixed string|array */
+	public function route(string $match = null) /* mixed string|array */
 	{
-		return (isset($this->responds[$match])) ? $this->responds[$match] : $this->responds;
+		return (isset($this->route[$match])) ? $this->route[$match] : $this->route;
 	}
 
-	public function route(string $requestUri, string $requestMethod): array
+	public function match(string $requestUri, string $requestMethod): array
 	{
 		$url = false;
 		$requestMethod = strtoupper($requestMethod);
@@ -51,7 +51,7 @@ class Router
 			throw new RouteNotFound();
 		}
 
-		$this->responds = [
+		$this->route = [
 			'requestMethod' => $requestMethod,
 			'requestURI' => $requestUri,
 			'matchedURI' => $route['url'],
@@ -64,7 +64,7 @@ class Router
 			'has' => (bool)count($args),
 		];
 
-		return $this->responds;
+		return $this->route;
 	}
 
 	public function getUrl(string $name, ...$arguments): string

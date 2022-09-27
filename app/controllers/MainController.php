@@ -17,7 +17,7 @@ class MainController extends Controller
 		$c = new Container;
 
 		/* not a factory */
-		$c->time = function () { // Register DB connection
+		$c->time = function () {
 			return microtime();
 		};
 

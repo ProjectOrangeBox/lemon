@@ -18,7 +18,7 @@ class Config
 		}
 
 		foreach (glob($path . '/*.php') as $file) {
-			$this->__set(basename($file, '.php'), require $file);
+			$this->__set(basename($file, '.php'), require_once $file);
 		}
 	}
 
