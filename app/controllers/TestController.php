@@ -113,6 +113,7 @@ class TestController extends Controller
 
 	public function foo()
 	{
+		/* singleton vs factory */
 		$c = new Container;
 
 		/* factory */
@@ -135,6 +136,7 @@ class TestController extends Controller
 		$html .= '<p>Peter = ' . $f3->get('name') . '</p>';
 		$html .= '<p>Peter = ' . $f4->get('name') . '</p>';
 
+		/* variable as a service */
 		$html .= '<p>This is a test = ' . $c->{'$test'} . '<p>';
 
 		$html .= '<p>' . env('DEBUG') . '</p>';
@@ -145,6 +147,9 @@ class TestController extends Controller
 		$html .= '<p>' . $c->router->getUrl('test', 'abc', 123) . '</p>';
 		$html .= '<p>' . $c->router->getUrl('home') . '</p>';
 		$html .= '<p>' . $c->router->getUrl('assets') . '</p>';
+
+
+		$html .= print_r(($c->events->events()), true);
 
 		return $html;
 	}

@@ -96,7 +96,7 @@ if (!function_exists('exceptionHandler')) {
 	{
 		$classes = explode('\\', get_class($exception));
 
-		echo '<pre>' . trim(implode(' ', preg_split('/(?=[A-Z])/', end($classes)))) . chr(10) . '"' . $exception->getMessage() . '"' . chr(10) . 'thrown on line ' . $exception->getLine() . ' in ' . $exception->getFile() . chr(10);
+		echo '<pre>' . ucwords(trim(implode(' ', preg_split('/(?=[A-Z])/', end($classes)))) . chr(10)) . '"' . $exception->getMessage() . '"' . chr(10) . 'thrown on line ' . $exception->getLine() . ' in ' . $exception->getFile() . chr(10);
 	}
 
 	set_exception_handler('exceptionHandler');

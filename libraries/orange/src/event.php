@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use dmyers\orange\exceptions\eventCallableInvalid;
+
 class Event
 {
 	const PRIORITY_LOWEST = 10;
@@ -21,26 +23,14 @@ class Event
 	 *
 	 * @var array
 	 */
-	protected $listeners = [];
+	protected $events = [];
 
 	public function __construct(array $config)
 	{
 		foreach ($config as $name => $events) {
 			foreach ($events as $options) {
-				if ($this->isClosure($options[0])) {
-					$priority = $options[1] ?? self::PRIORITY_NORMAL;
-
-					$this->register($name, $options[0], $priority);
-				} else {
-					$priority = $options[3] ?? self::PRIORITY_NORMAL;
-
-					$this->register($name, function (&...$arguments) use ($options) {
-						$className = $options[0];
-						$classMethod = $options[1];
-
-						return (new $className)->$classMethod(...$arguments);
-					}, $priority);
-				}
+				/* option[0] is either a Closure or a string containing the class name and method seperated by :: (double colons) */
+				$this->registerEvent($name, $options[0], $options[1] ?? self::PRIORITY_NORMAL);
 			}
 		}
 	}
@@ -51,6 +41,7 @@ class Event
 	 * #### Example
 	 * ```php
 	 * register('open.page',function(&$var1) { echo "hello $var1"; },EVENT::PRIORITY_HIGH);
+	 * register
 	 * ```
 	 * @access public
 	 *
@@ -61,25 +52,59 @@ class Event
 	 * @return Event
 	 *
 	 */
-	public function register(string $name, $callable, int $priority = self::PRIORITY_NORMAL): self
+	public function register($name, $callable, int $priority = self::PRIORITY_NORMAL): self
 	{
 		/* if they pass in a array treat it as a name=>closure pair */
 		if (is_array($name)) {
 			foreach ($name as $n) {
-				$this->register($n, $callable, $priority);
+				$this->registerEvent($n, $callable, $priority);
 			}
-			return $this;
+		} else {
+			$this->registerEvent($name, $callable, $priority);
 		}
 
-		/* clean up the name */
-		$this->normalizeName($name);
-
-		$this->listeners[$name][self::SORTED] = !isset($this->listeners[$name]); // Sorted?
-		$this->listeners[$name][self::PRIORITY][] = $priority;
-		$this->listeners[$name][self::CALLABLE][] = $callable;
-
-		/* allow chaining */
 		return $this;
+	}
+
+	protected function registerEvent(string $name, $callable, int $priority): void
+	{
+		if ($this->isClosure($callable)) {
+			/*
+			register a closure
+			
+			function(&$var) {
+				$var = 'Hello ' . $var. ' how are you?';
+			}
+			*/
+			$this->registerClosureEvent($name, $callable, $priority);
+		} elseif (is_string($callable)) {
+			/*
+			register a class & method
+			
+			[\app\libraries\Middleware::class.'::before']
+			*/
+			$this->registerClosureEvent($name, function (&...$arguments) use ($callable) {
+				if (count(explode('::', $callable)) != 2) {
+					throw new eventCallableInvalid($callable);
+				}
+
+				list($className, $classMethod) = explode('::', $callable, 2);
+
+				return (new $className)->$classMethod(...$arguments);
+			}, $priority);
+		} else {
+			throw new eventCallableInvalid();
+		}
+	}
+
+	protected function registerClosureEvent(string $name, $callable, int $priority): void
+	{
+		/* clean up the name */
+		$name = $this->normalizeName($name);
+
+		$this->events[$name][self::SORTED] = !isset($this->events[$name]); // Sorted?
+		$this->events[$name][self::PRIORITY][] = $priority;
+		$this->events[$name][self::CALLABLE][] = $callable;
 	}
 
 	/**
@@ -100,10 +125,10 @@ class Event
 	public function trigger(string $name, &...$arguments): self
 	{
 		/* clean up the name */
-		$this->normalizeName($name);
+		$name = $this->normalizeName($name);
 
 		/* do we even have any events with this name? */
-		if (isset($this->listeners[$name])) {
+		if (isset($this->events[$name])) {
 			foreach ($this->listeners($name) as $listener) {
 				/* stop processing on return of false */
 				if ($listener(...$arguments) === false) {
@@ -134,9 +159,9 @@ class Event
 	public function has(string $name): bool
 	{
 		/* clean up the name */
-		$this->normalizeName($name);
+		$name = $this->normalizeName($name);
 
-		return isset($this->listeners[$name]);
+		return isset($this->events[$name]);
 	}
 
 	/**
@@ -154,7 +179,7 @@ class Event
 	 */
 	public function events(): array
 	{
-		return array_keys($this->listeners);
+		return array_keys($this->events);
 	}
 
 	/**
@@ -175,9 +200,9 @@ class Event
 	public function count(string $name): int
 	{
 		/* clean up the name */
-		$this->normalizeName($name);
+		$name = $this->normalizeName($name);
 
-		return (isset($this->listeners[$name])) ? count($this->listeners[$name][self::PRIORITY]) : 0;
+		return (isset($this->events[$name])) ? count($this->events[$name][self::PRIORITY]) : 0;
 	}
 
 	/**
@@ -196,20 +221,20 @@ class Event
 	public function unregister(string $name, $matches = null): bool
 	{
 		/* clean up the name */
-		$this->normalizeName($name);
+		$name = $this->normalizeName($name);
 
 		$removed = false;
 
-		if (isset($this->listeners[$name])) {
+		if (isset($this->events[$name])) {
 			if ($matches == null) {
-				unset($this->listeners[$name]);
+				unset($this->events[$name]);
 
 				$removed = true;
 			} else {
-				foreach ($this->listeners[$name][self::CALLABLE] as $index => $check) {
+				foreach ($this->events[$name][self::CALLABLE] as $index => $check) {
 					if ($check === $matches) {
-						unset($this->listeners[$name][self::PRIORITY][$index]);
-						unset($this->listeners[$name][self::CALLABLE][$index]);
+						unset($this->events[$name][self::PRIORITY][$index]);
+						unset($this->events[$name][self::CALLABLE][$index]);
 
 						$removed = true;
 					}
@@ -236,7 +261,7 @@ class Event
 	 */
 	public function unregisterAll(): self
 	{
-		$this->listeners = [];
+		$this->events = [];
 
 		/* allow chaining */
 		return $this;
@@ -253,9 +278,9 @@ class Event
 	 * @return void
 	 *
 	 */
-	protected function normalizeName(string &$name): void
+	protected function normalizeName(string $name): string
 	{
-		$name = strtolower($name);
+		return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
 	}
 
 	/**
@@ -271,21 +296,21 @@ class Event
 	 */
 	protected function listeners(string $name): array
 	{
-		$this->normalizeName($name);
+		$name = $this->normalizeName($name);
 
 		$sorted = [];
 
-		if (isset($this->listeners[$name])) {
+		if (isset($this->events[$name])) {
 			/* The list is not sorted */
-			if (!$this->listeners[$name][self::SORTED]) {
+			if (!$this->events[$name][self::SORTED]) {
 				/* Sort it! */
-				array_multisort($this->listeners[$name][self::PRIORITY], SORT_DESC, SORT_NUMERIC, $this->listeners[$name][self::CALLABLE]);
+				array_multisort($this->events[$name][self::PRIORITY], SORT_DESC, SORT_NUMERIC, $this->events[$name][self::CALLABLE]);
 
 				/* Mark it as sorted already! */
-				$this->listeners[$name][self::SORTED] = true;
+				$this->events[$name][self::SORTED] = true;
 			}
 
-			$sorted = $this->listeners[$name][self::CALLABLE];
+			$sorted = $this->events[$name][self::CALLABLE];
 		}
 
 		return $sorted;
