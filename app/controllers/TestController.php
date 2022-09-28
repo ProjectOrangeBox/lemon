@@ -142,14 +142,15 @@ class TestController extends Controller
 		$html .= '<p>' . env('DEBUG') . '</p>';
 		$html .= '<p>' . env('ENVIRONMENT') . '</p>';
 
-		$html .= '<p>' . $c->router->getUrl('product', 'abc', 123) . '</p>';
-		$html .= '<p>' . $c->router->getUrl('product', 'xyz', 890) . '</p>';
-		$html .= '<p>' . $c->router->getUrl('test', 'abc', 123) . '</p>';
+		$html .= '<p>' . $c->router->getUrl('product', ['abc', 123]) . '</p>';
+		$html .= '<p>' . $c->router->getUrl('product', ['xyz', 890]) . '</p>';
+		$html .= '<p>' . $c->router->getUrl('test', ['abc', 123]) . '</p>';
 		$html .= '<p>' . $c->router->getUrl('home') . '</p>';
 		$html .= '<p>' . $c->router->getUrl('assets') . '</p>';
 
-
 		$html .= print_r(($c->events->events()), true);
+
+		$c->router->redirect('product', ['abc', 123], 302);
 
 		return $html;
 	}

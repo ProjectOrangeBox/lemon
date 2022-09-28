@@ -24,25 +24,32 @@ class Config
 
 	public function __set($name, $value)
 	{
-		$this->container[strtolower($name)] = $value;
+		$this->container[$this->normalizeName($name)] = $value;
 	}
 
 	public function __get($name)
 	{
+		$name = $this->normalizeName($name);
+
 		if (!$this->__isset($name)) {
 			throw new ConfigNotFound($name);
 		}
 
-		return $this->container[strtolower($name)];
+		return $this->container[$name];
 	}
 
 	public function __isset($name)
 	{
-		return isset($this->container[strtolower($name)]);
+		return isset($this->container[$this->normalizeName($name)]);
 	}
 
 	public function __unset($name)
 	{
-		unset($this->container[strtolower($name)]);
+		unset($this->container[$this->normalizeName($name)]);
+	}
+
+	protected function normalizeName(string $name): string
+	{
+		return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
 	}
 } /* end class */

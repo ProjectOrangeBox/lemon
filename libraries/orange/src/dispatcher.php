@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use dmyers\orange\exceptions\MethodNotFound;
 use dmyers\orange\exceptions\ControllerClassNotFound;
-use dmyers\orange\exceptions\ControllerMethodNotFound;
 
 class Dispatcher
 {
@@ -24,7 +24,6 @@ class Dispatcher
 		$controllerClass = $route['controller'];
 
 		if (class_exists($controllerClass)) {
-
 			$method = $route['method'];
 
 			if (method_exists($controllerClass, $method)) {
@@ -35,7 +34,7 @@ class Dispatcher
 
 				return (new $controllerClass($this->input, $this->output, $this->config))->$method(...$matches);
 			} else {
-				throw new ControllerMethodNotFound($method);
+				throw new MethodNotFound($method);
 			}
 		} else {
 			throw new ControllerClassNotFound($controllerClass);

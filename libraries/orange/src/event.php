@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\exceptions\eventCallableInvalid;
+use dmyers\orange\exceptions\InvalidValue;
 
 class Event
 {
@@ -85,7 +85,7 @@ class Event
 			*/
 			$this->registerClosureEvent($name, function (&...$arguments) use ($callable) {
 				if (count(explode('::', $callable)) != 2) {
-					throw new eventCallableInvalid($callable);
+					throw new InvalidValue($callable);
 				}
 
 				list($className, $classMethod) = explode('::', $callable, 2);
@@ -93,7 +93,7 @@ class Event
 				return (new $className)->$classMethod(...$arguments);
 			}, $priority);
 		} else {
-			throw new eventCallableInvalid();
+			throw new InvalidValue();
 		}
 	}
 
@@ -269,22 +269,6 @@ class Event
 
 	/**
 	 *
-	 * Normalize the event name
-	 *
-	 * @access protected
-	 *
-	 * @param string $name
-	 *
-	 * @return void
-	 *
-	 */
-	protected function normalizeName(string $name): string
-	{
-		return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
-	}
-
-	/**
-	 *
 	 * Do the actual sorting
 	 *
 	 * @access protected
@@ -314,6 +298,22 @@ class Event
 		}
 
 		return $sorted;
+	}
+
+	/**
+	 *
+	 * Normalize the event name
+	 *
+	 * @access protected
+	 *
+	 * @param string $name
+	 *
+	 * @return void
+	 *
+	 */
+	protected function normalizeName(string $name): string
+	{
+		return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
 	}
 
 	protected function isClosure($t)

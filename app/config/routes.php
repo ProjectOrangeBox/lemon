@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+	['host' => 'https://lemon'],
+
 	/* home page */
 	['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],
 

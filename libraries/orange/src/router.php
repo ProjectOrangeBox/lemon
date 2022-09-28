@@ -67,21 +67,21 @@ class Router
 		return $this->route;
 	}
 
-	public function getUrl(string $name, ...$arguments): string
+	public function getUrl(string $name, array $arguments = []): string
 	{
 		$url = '';
-		$re = '/\((.*?)\)/m';
-		$name = strtolower($name);
+		$name = $this->normalizeName($name);
 		$argumentsCount = count($arguments);
 
 		foreach ($this->routes as $route) {
-			if (isset($route['name']) && strtolower($route['name']) == $name) {
+			if (isset($route['name']) && $this->normalizeName($route['name']) == $name) {
 				if (!isset($route['url'])) {
-					throw new InvalidValue('missing url value for "' . $name . '"');
+					throw new InvalidValue('Missing url value for "' . $name . '"');
 				}
 
 				$url = $route['url'];
-				preg_match_all($re, $url, $matches, PREG_SET_ORDER, 0);
+
+				preg_match_all('/\((.*?)\)/m', $url, $matches, PREG_SET_ORDER, 0);
 
 				$matchesCount = count($matches);
 
@@ -90,10 +90,9 @@ class Router
 				}
 
 				foreach ($matches as $index => $match) {
-					$re = '@' . $match[0] . '@m';
 					$value = (string)$arguments[$index];
 
-					if (!preg_match($re, $value)) {
+					if (!preg_match('@' . $match[0] . '@m', $value)) {
 						throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value);
 					}
 
@@ -104,10 +103,31 @@ class Router
 			}
 		}
 
-		if ($url == '') {
+		if (empty($url)) {
 			throw new RouterNameNotFound('Path "' . $name . '" not found');
 		}
 
 		return $url;
+	}
+
+	public function redirect(string $name, array $arguments, int $responseCode = 0)
+	{
+		$host = '';
+
+		/* find host name if they set it */
+		foreach ($this->routes as $route) {
+			if (isset($route['host'])) {
+				$host = $route['host'];
+			}
+		}
+
+		header('Location: ' . $host . $this->getUrl($name, $arguments), true, $responseCode);
+
+		exit(0);
+	}
+
+	protected function normalizeName(string $name): string
+	{
+		return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
 	}
 } /* end class */

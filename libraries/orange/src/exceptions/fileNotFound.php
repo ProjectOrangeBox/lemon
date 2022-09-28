@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace dmyers\orange\exceptions;
 
-class ControllerMethodNotFound extends \Exception
+class FileNotFound extends \Exception
 {
 }
