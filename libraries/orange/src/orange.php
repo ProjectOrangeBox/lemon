@@ -154,13 +154,13 @@ if (!function_exists('siteUrl')) {
 	{
 		$container = container();
 
-		$configApp = $container->config->app;
+		$config = $container->{'$config'};
 
-		if (!isset($configApp['siteUrl'])) {
-			throw new ConfigNotFound('File: app.php Value: siteUrl');
+		if (!isset($config['siteUrl'])) {
+			throw new ConfigNotFound('File: config.php Value: siteUrl');
 		}
 
-		$siteUrl = $configApp['siteUrl'];
+		$siteUrl = $config['siteUrl'];
 
 		if ($autoDetect) {
 			$siteUrl = 'http' . ($container->input->isHttpsRequest() ? 's' : '') . '://' . $siteUrl;

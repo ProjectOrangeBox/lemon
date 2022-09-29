@@ -111,11 +111,16 @@ class Router
 		return $url;
 	}
 
-	public function redirect(string $name, array $arguments = [], int $responseCode = 0)
+	public function redirect(string $url, int $responseCode = 0)
 	{
-		header('Location: ' . siteUrl() . $this->getUrl($name, $arguments), true, $responseCode);
+		header('Location: ' . $url, true, $responseCode);
 
 		exit(0);
+	}
+
+	public function redirectNamed(string $name, array $arguments = [], int $responseCode = 0)
+	{
+		$this->redirect(siteUrl() . $this->getUrl($name, $arguments), $responseCode);
 	}
 
 	protected function normalizeName(string $name): string

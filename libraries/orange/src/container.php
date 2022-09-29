@@ -44,6 +44,11 @@ class Container
 	 */
 	public function __get(string $serviceName)
 	{
+		return $this->get($serviceName);
+	}
+
+	public function get(string $serviceName)
+	{
 		if (substr($serviceName, -2) == '[]') {
 			$serviceName = substr($serviceName, 0, -2);
 			$factory = true;
@@ -78,6 +83,11 @@ class Container
 	 */
 	public function __set(string $serviceName, $option): void
 	{
+		$this->set($serviceName, $option);
+	}
+
+	public function set(string $serviceName, $option): void
+	{
 		if (substr($serviceName, -2) == '[]') {
 			$serviceName = substr($serviceName, 0, -2);
 			$singleton = false;
@@ -111,6 +121,11 @@ class Container
 	 */
 	public function __isset(string $serviceName): bool
 	{
+		return $this->isset($serviceName);
+	}
+
+	public function isset(string $serviceName): bool
+	{
 		return isset(self::$registeredServices[strtolower($serviceName)]);
 	}
 
@@ -124,6 +139,11 @@ class Container
 	 * @return void
 	 */
 	public function __unset(string $serviceName): void
+	{
+		$this->unset($serviceName);
+	}
+
+	public function unset(string $serviceName): void
 	{
 		unset(self::$registeredServices[strtolower($serviceName)]);
 	}
@@ -162,6 +182,11 @@ class Container
 	 * @return array
 	 */
 	public function __debugInfo(): array
+	{
+		return $this->debugInfo();
+	}
+
+	public function debugInfo(): array
 	{
 		$debug = [];
 
