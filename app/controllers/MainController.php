@@ -4,26 +4,19 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use dmyers\orange\Container;
 use dmyers\orange\Controller;
 
 class MainController extends Controller
 {
 	public function index()
 	{
-		$data['name'] = $this->input->env('name');
-		$data['version'] = $this->input->env('version');
+		$appConfig = container()->config->app;
 
-		$c = new Container;
-
-		/* not a factory */
-		$c->time = function () {
-			return microtime();
-		};
-
-		d($c->time);
-		d($c->time);
-		d($c->{'time[]'});
+		$data = [
+			'name' => $appConfig['name'],
+			'version' => $appConfig['version'],
+			'siteUrl' => siteUrl(),
+		];
 
 		return $this->output->view('/index', $data);
 	}

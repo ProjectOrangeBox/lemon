@@ -1,0 +1,13 @@
+GET https://lemon/rest
+
+###
+
+POST https://lemon/rest
+
+
+###
+PUT https://lemon/rest
+
+
+###
+DELETE https://lemon/rest

@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 return [
-	['host' => 'https://lemon'],
-
 	/* home page */
 	['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],
 
@@ -12,6 +10,9 @@ return [
 	['method' => 'GET', 'url' => '/test/disc', 'callback' => [\app\controllers\TestController::class, 'disc']],
 
 	['method' => 'GET', 'url' => '/test', 'callback' => [\app\controllers\TestController::class, 'foo']],
+
+	/* multiple methods */
+	['method' => ['GET', 'POST', 'PUT'], 'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'main'], 'name' => 'rest'],
 
 	/* 'test/([a-z]+)/(\d+)' */
 	['method' => 'GET', 'url' => '/test/([a-z]+)/(\d+)', 'callback' => [\app\controllers\TestController::class, 'index'], 'name' => 'test'],

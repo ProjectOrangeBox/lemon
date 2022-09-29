@@ -34,10 +34,11 @@ class Router
 
 		foreach ($this->routes as $route) {
 			if (isset($route['method'])) {
-				$matchedMethod = strtoupper($route['method']);
 
-				/* check if the current request matches the expression */
-				if (($requestMethod == $matchedMethod || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $args)) {
+				$matchedMethod = (is_array($route['method'])) ? strtoupper(implode('|', $route['method'])) : strtoupper($route['method']);
+
+				/* check if the current request method matches and the expression mathces */
+				if ((strpos($matchedMethod, $requestMethod) !== false || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $args)) {
 					/* remove the first arg */
 					$url = array_shift($args);
 
@@ -110,18 +111,9 @@ class Router
 		return $url;
 	}
 
-	public function redirect(string $name, array $arguments, int $responseCode = 0)
+	public function redirect(string $name, array $arguments = [], int $responseCode = 0)
 	{
-		$host = '';
-
-		/* find host name if they set it */
-		foreach ($this->routes as $route) {
-			if (isset($route['host'])) {
-				$host = $route['host'];
-			}
-		}
-
-		header('Location: ' . $host . $this->getUrl($name, $arguments), true, $responseCode);
+		header('Location: ' . siteUrl() . $this->getUrl($name, $arguments), true, $responseCode);
 
 		exit(0);
 	}

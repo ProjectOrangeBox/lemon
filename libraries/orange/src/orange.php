@@ -26,7 +26,7 @@ if (!function_exists('http')) {
 			require_once __ROOT__ . '/app/Bootstrap.php';
 		}
 
-		$container = makeContainer($config['services'] ?? '');
+		$container = container($config['services'] ?? '');
 
 		$container->{'$config'} = $config;
 
@@ -59,7 +59,7 @@ if (!function_exists('cli')) {
 			require_once __ROOT__ . '/cli/Bootstrap.php';
 		}
 
-		$container = makeContainer($config['services'] ?? '');
+		$container = container($config['services'] ?? '');
 
 		$container->{'$config'} = $config;
 
@@ -67,10 +67,10 @@ if (!function_exists('cli')) {
 	}
 }
 
-if (!function_exists('makeContainer')) {
-	function makeContainer(string $servicesFile = null): Container
+if (!function_exists('container')) {
+	function container(string $servicesFile = null): Container
 	{
-		$serviceArray = [];
+		$serviceArray = null;
 
 		if (isset($servicesFile) && file_exists($servicesFile)) {
 			$serviceArray = require_once $servicesFile;
@@ -113,7 +113,7 @@ if (!function_exists('logMsg')) {
 	 */
 	function logMsg(string $msg, string $level = 'INFO')
 	{
-		(new Container)->log->writeLog($level, $msg);
+		container()->log->writeLog($level, $msg);
 	}
 }
 
@@ -146,5 +146,26 @@ if (!function_exists('env')) {
 		}
 
 		return (isset($env[$key])) ? $env[$key] : $default;
+	}
+}
+
+if (!function_exists('siteUrl')) {
+	function siteUrl(bool $autoDetect = true): string
+	{
+		$container = container();
+
+		$configApp = $container->config->app;
+
+		if (!isset($configApp['siteUrl'])) {
+			throw new ConfigNotFound('File: app.php Value: siteUrl');
+		}
+
+		$siteUrl = $configApp['siteUrl'];
+
+		if ($autoDetect) {
+			$siteUrl = 'http' . ($container->input->isHttpsRequest() ? 's' : '') . '://' . $siteUrl;
+		}
+
+		return $siteUrl;
 	}
 }

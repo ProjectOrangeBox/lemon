@@ -24,10 +24,20 @@ class Config
 
 	public function __set($name, $value)
 	{
+		$this->set($name, $value);
+	}
+
+	public function set(string $name, $value): void
+	{
 		$this->container[$this->normalizeName($name)] = $value;
 	}
 
 	public function __get($name)
+	{
+		return $this->get($name);
+	}
+
+	public function get(string $name)
 	{
 		$name = $this->normalizeName($name);
 
@@ -40,12 +50,27 @@ class Config
 
 	public function __isset($name)
 	{
+		return $this->isset($name);
+	}
+
+	public function isset(string $name): bool
+	{
 		return isset($this->container[$this->normalizeName($name)]);
 	}
 
 	public function __unset($name)
 	{
+		$this->unset($name);
+	}
+
+	public function unset(string $name)
+	{
 		unset($this->container[$this->normalizeName($name)]);
+	}
+
+	public function __debugInfo()
+	{
+		return $this->container;
 	}
 
 	protected function normalizeName(string $name): string

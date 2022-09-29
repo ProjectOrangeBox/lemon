@@ -22,6 +22,10 @@
 	</p>
 
 	<p>
+		<?= $siteUrl ?>
+	</p>
+
+	<p>
 		<?= $name ?> <?= $version ?>
 	</p>
 
