@@ -176,4 +176,16 @@ class TestController extends Controller
 
 		return $this->output->view('json', ['json' => $obj]);
 	}
+
+	public function configDot()
+	{
+		$html = '<pre>';
+		$lf = chr(10);
+		$c = container();
+
+		$html .= $c->config->app['name'] . $lf;
+		$html .= $c->configDot['app.name'] . $lf;
+
+		return $html;
+	}
 } /* end class */

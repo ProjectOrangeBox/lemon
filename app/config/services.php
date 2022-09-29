@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Adbar\Dot;
 use app\libraries\Foo;
 use dmyers\orange\Log;
 use dmyers\orange\Event;
@@ -11,6 +12,7 @@ use dmyers\orange\Output;
 use dmyers\orange\Router;
 use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
+use dmyers\orange\exceptions\ConfigFolderNotFound;
 
 return [
 	'log' => function (Container $container) {
@@ -33,6 +35,22 @@ return [
 	},
 	'dispatcher' => function (Container $container) {
 		return new Dispatcher($container->input, $container->output, $container->config);
+	},
+
+	'configDot' => function (Container $container) {
+		$path = $container->{'$config'}['config folder'];
+
+		if (!is_dir($path)) {
+			throw new ConfigFolderNotFound($path);
+		}
+
+		$configs = [];
+
+		foreach (glob($path . '/*.php') as $file) {
+			$configs[basename($file, '.php')] = require $file;
+		}
+
+		return new Dot($configs);
 	},
 
 	/* inside array = factory (ie. multiple) */

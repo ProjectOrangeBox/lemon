@@ -14,6 +14,8 @@ return [
 	/* multiple methods */
 	['method' => ['GET', 'POST', 'PUT'], 'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'main'], 'name' => 'rest'],
 
+	['method' => 'GET', 'url' => '/test/configdot', 'callback' => [\app\controllers\TestController::class, 'ConfigDot'], 'name' => 'configDot'],
+
 	/* 'test/([a-z]+)/(\d+)' */
 	['method' => 'GET', 'url' => '/test/([a-z]+)/(\d+)', 'callback' => [\app\controllers\TestController::class, 'index'], 'name' => 'test'],
 

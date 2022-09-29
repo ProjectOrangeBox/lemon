@@ -18,7 +18,7 @@ class Config
 		}
 
 		foreach (glob($path . '/*.php') as $file) {
-			$this->__set(basename($file, '.php'), require_once $file);
+			$this->__set(basename($file, '.php'), require $file);
 		}
 	}
 
@@ -66,6 +66,11 @@ class Config
 	public function unset(string $name)
 	{
 		unset($this->container[$this->normalizeName($name)]);
+	}
+
+	public function __toString()
+	{
+		return json_encode($this->container, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
 	}
 
 	public function __debugInfo()
