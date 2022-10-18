@@ -7,8 +7,8 @@
             "app\\": "app/"
         },
         "files": [
-            "libraries/orange/src/orange.php",
-            "libraries/orange/src/console.php",
+            "libraries/orange/src/Orange.php",
+            "libraries/orange/src/Console.php",
             "vendor/larapack/dd/src/helper.php"
         ]
     },
