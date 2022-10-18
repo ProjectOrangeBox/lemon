@@ -53,6 +53,9 @@ return [
 		return new Dot($configs);
 	},
 
+	'@cat' => 'foo',
+	'@dog' => 'bar',
+
 	/* inside array = factory (ie. multiple) */
 	'foo[]' => function (Container $container) {
 		return new Foo;
