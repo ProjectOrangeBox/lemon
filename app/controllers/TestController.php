@@ -151,9 +151,9 @@ class TestController extends Controller
 		$html .= '<p>' . $container->router->getUrl('home') . '</p>';
 		$html .= '<p>' . $container->router->getUrl('assets') . '</p>';
 
-		$html .= print_r(($container->events->events()), true);
+		$html .= '<p>{{**}}</p>';
 
-		//$container->router->redirect('product', ['abc', 123], 302);
+		$html .= print_r(($container->events->events()), true);
 
 		return $html;
 	}
@@ -190,5 +190,10 @@ class TestController extends Controller
 		$html .= $container->configDot['app.name'] . $lf;
 
 		return $html;
+	}
+
+	public function redirect()
+	{
+		return $this->output->redirect(container()->router->getUrl('home'));
 	}
 } /* end class */

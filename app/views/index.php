@@ -29,6 +29,18 @@
 		<?= $name ?> <?= $version ?>
 	</p>
 
+	<p>
+		<a href="/test/redirect">Test Redirect (back to home)</a>
+	</p>
+
+	<p>
+		<a href="/test">Test</a>
+	</p>
+
+	<p>
+		<a href="/test/bar">Test Bar</a>
+	</p>
+
 </body>
 
 </html>
