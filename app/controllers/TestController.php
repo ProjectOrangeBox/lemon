@@ -50,7 +50,7 @@ class TestController extends Controller
 			]
 		];
 
-		$csv = array(
+		$containersv = array(
 			array('name' => 'Don Stein', 'age' => '23',),
 			array('name' => 'John Doe', 'age' => '21',),
 			array('name' => 'Jen White', 'age' => '27',)
@@ -62,9 +62,9 @@ class TestController extends Controller
 
 		//d($ini);
 
-		disc::file('/testing/test.csv')->export->csv($csv);
+		disc::file('/testing/test.csv')->export->csv($containersv);
 
-		$csv2 = disc::file('/testing/test.csv')->import->csv();
+		$containersv2 = disc::file('/testing/test.csv')->import->csv();
 
 		$file = disc::file('/testing/newfile.txt')->create();
 		$file->writeLine('Hello World');
@@ -76,9 +76,9 @@ class TestController extends Controller
 		//d($file->info());
 		//d($file);
 
-		$content = disc::file('/testing/newfile.txt')->import->content();
+		$containerontent = disc::file('/testing/newfile.txt')->import->content();
 
-		//d($content);
+		//d($containerontent);
 
 		$dir = disc::directory('/testing');
 
@@ -114,43 +114,46 @@ class TestController extends Controller
 	public function foo()
 	{
 		/* singleton vs factory */
-		$c = new Container;
+		$container = new Container;
 
 		/* factory */
-		$f1 = $c->foo;
-		$f2 = $c->foo;
+		$foo1 = $container->foo;
+		$foo2 = $container->foo;
 
-		$f1->set('name', 'Don');
-		$f2->set('name', 'Jen');
+		$foo1->set('name', 'Don');
+		$foo2->set('name', 'Jen');
 
 		/* singleton */
-		$f3 = $c->bar;
-		$f3->set('name', 'Doug');
+		$foo3 = $container->bar;
+		$foo3->set('name', 'Doug');
 
-		$f4 = $c->bar;
-		$f4->set('name', 'Peter');
+		$foo4 = $container->bar;
+		$foo4->set('name', 'Peter');
+
+		$foo5Alias = $container->Dog;
 
 		$html = '<pre>';
-		$html .= '<p>Don = ' . $f1->get('name') . '</p>';
-		$html .= '<p>Jen = ' . $f2->get('name') . '</p>';
-		$html .= '<p>Peter = ' . $f3->get('name') . '</p>';
-		$html .= '<p>Peter = ' . $f4->get('name') . '</p>';
+		$html .= '<p>Don = ' . $foo1->get('name') . '</p>';
+		$html .= '<p>Jen = ' . $foo2->get('name') . '</p>';
+		$html .= '<p>Peter = ' . $foo3->get('name') . '</p>';
+		$html .= '<p>Peter = ' . $foo4->get('name') . '</p>';
+		$html .= '<p>Peter = ' . $foo5Alias->get('name') . '</p>';
 
 		/* variable as a service */
-		$html .= '<p>This is a test = ' . $c->{'$test'} . '<p>';
+		$html .= '<p>This is a test = ' . $container->{'$test'} . '<p>';
 
 		$html .= '<p>' . env('DEBUG') . '</p>';
 		$html .= '<p>' . env('ENVIRONMENT') . '</p>';
 
-		$html .= '<p>' . $c->router->getUrl('product', ['abc', 123]) . '</p>';
-		$html .= '<p>' . $c->router->getUrl('product', ['xyz', 890]) . '</p>';
-		$html .= '<p>' . $c->router->getUrl('test', ['abc', 123]) . '</p>';
-		$html .= '<p>' . $c->router->getUrl('home') . '</p>';
-		$html .= '<p>' . $c->router->getUrl('assets') . '</p>';
+		$html .= '<p>' . $container->router->getUrl('product', ['abc', 123]) . '</p>';
+		$html .= '<p>' . $container->router->getUrl('product', ['xyz', 890]) . '</p>';
+		$html .= '<p>' . $container->router->getUrl('test', ['abc', 123]) . '</p>';
+		$html .= '<p>' . $container->router->getUrl('home') . '</p>';
+		$html .= '<p>' . $container->router->getUrl('assets') . '</p>';
 
-		$html .= print_r(($c->events->events()), true);
+		$html .= print_r(($container->events->events()), true);
 
-		$c->router->redirect('product', ['abc', 123], 302);
+		//$container->router->redirect('product', ['abc', 123], 302);
 
 		return $html;
 	}
@@ -181,10 +184,10 @@ class TestController extends Controller
 	{
 		$html = '<pre>';
 		$lf = chr(10);
-		$c = container();
+		$container = container();
 
-		$html .= $c->config->app['name'] . $lf;
-		$html .= $c->configDot['app.name'] . $lf;
+		$html .= $container->config->app['name'] . $lf;
+		$html .= $container->configDot['app.name'] . $lf;
 
 		return $html;
 	}

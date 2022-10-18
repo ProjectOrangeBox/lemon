@@ -9,7 +9,7 @@ use dmyers\orange\Controller;
 class MainController extends Controller
 {
 	public function index()
-	{
+	{	
 		$appConfig = container()->config->app;
 
 		$data = [
