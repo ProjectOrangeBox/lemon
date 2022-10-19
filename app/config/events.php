@@ -4,24 +4,30 @@ declare(strict_types=1);
 
 use dmyers\orange\Event;
 
+/*
+
+A closure is also supported:
+
+[function ($router, $input, $output) {
+	$output->appendOutput('<p>Copyright '.date('Y').'</p>);
+}, Event::PRIORITY_HIGHEST],
+*/
+
 return [
+	'before.router' => [
+		[\app\libraries\OutputCors::class . '::handleCrossOriginResourceSharing', Event::PRIORITY_HIGHEST],
+		[\app\libraries\Middleware::class . '::beforeRouter'],
+	],
 	'before.controller' => [
-		[\app\libraries\Middleware::class . '::before', Event::PRIORITY_HIGHEST],
-		/*
-		[function (\dmyers\orange\Container &$container, array &$route) {
-			$container->output->appendOutput('<pre>hello world' . chr(10));
-		}, Event::PRIORITY_HIGHEST],
-		*/
+		[\app\libraries\Middleware::class . '::beforeController'],
 	],
 	'after.controller' => [
-		[\app\libraries\Middleware::class . '::after', Event::PRIORITY_HIGHEST],
-		/*
-		[function (\dmyers\orange\Container &$container, ?string &$output) {
-			$output .= '<p>Good Bye World!</p>';
-		}, Event::PRIORITY_HIGHEST],
-		*/
+		[\app\libraries\Middleware::class . '::afterController'],
 	],
-	'some_bogus_event$that@doesn\'t&exist' => [
+	'after.output' => [
+		[\app\libraries\Middleware::class . '::afterOutput'],
+	],
+	'some.bogus_Event' => [
 		['\app\bogus\class::bogus_method', Event::PRIORITY_LOWEST],
 	],
 ];
