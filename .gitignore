@@ -1,1 +1,3 @@
 var/logs
+vendor
+.env
